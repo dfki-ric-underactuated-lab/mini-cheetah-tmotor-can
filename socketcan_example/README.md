@@ -14,7 +14,9 @@ SocketCAN Linux Documentation can be found [here](https://www.kernel.org/doc/htm
 To enable virtual SocketCAN interface run:
 
 ```
-$ ip link add dev vcan0 type vcan
+$ sudo ip link add dev vcan0 type vcan
+
+$ sudo ip link set up vcan0
 ```
 
 ## Build Instructions
