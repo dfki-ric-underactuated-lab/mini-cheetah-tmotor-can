@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 
-project(motor_driver)
+project(mini_cheetah_motor_driver)
 
 set (CMAKE_CXX_STANDARD 11)
 
