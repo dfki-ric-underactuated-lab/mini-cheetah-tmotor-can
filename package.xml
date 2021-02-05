@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>mini_cheetah_motor_driver</name>
+  <version>0.0.0</version>
+  <description>mini_cheetah_motor_driver package</description>
+
+  <maintainer email="benjamin.huelsen@dfki.de">Benjamin Hülsen</maintainer>
+
+        <export>
+                <build_type>cmake</build_type>
+        </export>
+
+  <license>Copyright DFKI</license>
+</package>
