@@ -16,14 +16,14 @@ namespace motor_driver
     public:
         MotorDriver();
 
-	~MotorDriver();
+    	~MotorDriver();
 
-	motorState disableMotor();
-	motorState enableMotor();
-	motorState setZeroPosition();
-	motorState sendDegreeCommand();
+    	motorState disableMotor();
+    	motorState enableMotor();
+    	motorState setZeroPosition();
+    	motorState sendDegreeCommand();
         motorState sendRadCommand();
-	motorState sendTorqueCommand();
+    	motorState sendTorqueCommand();
 
     private:
 
