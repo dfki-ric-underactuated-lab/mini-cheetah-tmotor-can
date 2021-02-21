@@ -11,6 +11,7 @@ set(lib_INCLUDE_DIR ${INCLUDE_DIR} CACHE INTERNAL "")
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${INCLUDE_DIR})
 
+# Isn't this redundant? Almost same directories as above line.
 include_directories(
 	            ${PROJECT_SOURCE_DIR}/include            
 	            ${PROJECT_SOURCE_DIR}/src            
@@ -27,6 +28,10 @@ set(LIBRARY_HEADER ${INCLUDE_DIR}/MotorDriver.hpp
 	           ${INCLUDE_DIR}/Parameters.hpp)
 
 add_library(${PROJECT_NAME} ${LIBRARY_SOURCE} ${LIBRARY_HEADER})
+
+add_executable(MotorDriverTest ${SOURCE_DIR}/MotorDriverTest.cpp)
+
+target_link_libraries(MotorDriverTest ${PROJECT_NAME})
 
 INSTALL(TARGETS ${PROJECT_NAME}
         RUNTIME DESTINATION bin
