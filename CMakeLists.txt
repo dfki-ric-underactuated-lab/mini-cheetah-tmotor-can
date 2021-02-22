@@ -11,7 +11,6 @@ set(lib_INCLUDE_DIR ${INCLUDE_DIR} CACHE INTERNAL "")
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${INCLUDE_DIR})
 
-# Isn't this redundant? Almost same directories as above line.
 include_directories(
 	            ${PROJECT_SOURCE_DIR}/include            
 	            ${PROJECT_SOURCE_DIR}/src            
