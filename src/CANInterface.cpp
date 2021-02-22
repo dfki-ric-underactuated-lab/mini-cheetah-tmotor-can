@@ -1,31 +1,20 @@
 #include "CANInterface.hpp"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-
-#include <net/if.h>
-#include <sys/ioctl.h>
-#include <linux/can.h>
-#include <linux/can/raw.h>
-
-#include <sys/socket.h>
-
-#include <linux/can.h>
-#include <linux/can/raw.h>
 
 namespace CAN_interface
 {
-    CANInterface::CANInterface(const char* socketName)
+    CANInterface::CANInterface(const char* socketName, const uint32_t can_id)
     {
         // const char* socketIfName = &socketName;  
         // int s;  // File descriptor for the socket as everything in Linux/Unix is a file. 
         struct sockaddr_can addr; // structure for CAN sockets : address family number AF_CAN
         struct ifreq ifr; // from if.h Interface Request structure used for all socket ioctl's. All interface ioctl's must have parameter definitions which begin with ifr name. The remainder may be interface specific.
 
+
+        can_id_ = can_id;
+
         // socket(int domain, int type, int protocol): returns file descriptor int or -1 if fail
-        if ((socket_descrp = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0)
+        if ((socket_descrp_ = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0)
         {
             perror("CANInterface: Error While Opening CAN Socket");
         }
@@ -36,7 +25,7 @@ namespace CAN_interface
             // Send an I/O control call and pass an ifreq structure containing the interface name
             // ioctl() system call manipulates the underlying device parameters of special files. 
             // SIOCGIFINDEX Retrieve the interface index of the interface into ifr_ifindex insude ifr struct.
-            ioctl(socket_descrp, SIOCGIFINDEX, &ifr);
+            ioctl(socket_descrp_, SIOCGIFINDEX, &ifr);
 
             // with the interface index, now bind the socket to the CAN Interface
             struct sockaddr_can addr;
@@ -48,21 +37,21 @@ namespace CAN_interface
             addr.can_family = AF_CAN;
             addr.can_ifindex = ifr.ifr_ifindex;
 
-            if (bind(socket_descrp, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+            if (bind(socket_descrp_, (struct sockaddr *)&addr, sizeof(addr)) < 0)
             {
                perror("CANInterface: Error while binding to the CAN Socket.");
             }
         }
     }
 
-    bool CANInterface::sendCANFrame(uint32_t can_id, unsigned char* CANMsg)
+    bool CANInterface::sendCANFrame(unsigned char* CANMsg)
     {
         struct can_frame frame;
-        frame.can_id = can_id;
+        frame.can_id = can_id_;
         frame.can_dlc = 8;
         memcpy(frame.data, CANMsg, 8);
 
-        if (write(socket_descrp, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame))
+        if (write(socket_descrp_, &frame, sizeof(struct can_frame)) != sizeof(struct can_frame))
         {
             perror("CANInterface: Error writing to CAN Interface.");
             return false;
@@ -73,14 +62,14 @@ namespace CAN_interface
         }
     }
 
-    bool CANInterface::receiveCANFrame(uint32_t can_id, unsigned char* CANMsg)
+    bool CANInterface::receiveCANFrame(unsigned char* CANMsg)
     {
         // Need to implement the filterting of the messages from the CAN ID requested.
         // Currently the CAN ID is not used at all here as it listens to all CAN messages.
 
         struct can_frame frame;
 
-        if (read(socket_descrp, &frame, sizeof(struct can_frame)) < 0)
+        if (read(socket_descrp_, &frame, sizeof(struct can_frame)) < 0)
         {
             perror("CANInterface: Error Reading Data.");
             return false;
@@ -94,7 +83,7 @@ namespace CAN_interface
 
     CANInterface::~CANInterface() {
 
-        if (close(socket_descrp) < 0) {
+        if (close(socket_descrp_) < 0) {
             perror("CANInterface: Error Closing CAN Socket.");
         }
 
