@@ -62,16 +62,19 @@ namespace motor_driver
     motorState MotorDriver::disableMotor()
     {
         motorState state;
-        MotorCANInterface_.sendCANFrame(motorDisableMsg);
-        usleep(motorReplyWaitTime);
-        if (MotorCANInterface_.receiveCANFrame(CANReplyMsg_))
+        if (isEnabled)
         {
-            state = decodeCANFrame(CANReplyMsg_);
-            isEnabled = false;
-        }
-        else
-        {
-            perror("MotorDriver: Unable to Receive CAN Reply.");
+            MotorCANInterface_.sendCANFrame(motorDisableMsg);
+            usleep(motorReplyWaitTime);
+            if (MotorCANInterface_.receiveCANFrame(CANReplyMsg_))
+            {
+                state = decodeCANFrame(CANReplyMsg_);
+                isEnabled = false;
+            }
+            else
+            {
+                perror("MotorDriver: Unable to Receive CAN Reply.");
+            }
         }
         return state;
     }
@@ -95,13 +98,52 @@ namespace motor_driver
         return state;
     }
 
-    motorState MotorDriver::sendDegreeCommand()
+        motorState MotorDriver::sendRadCommand(float p_des, float v_des, float kp, float kd, float i_ff)
     {
         motorState state;
+        // Apply Saturation based on the limits
+        p_des = fminf(fmaxf(P_MIN, p_des), P_MAX);
+        v_des = fminf(fmaxf(V_MIN, v_des), V_MAX);
+        kp = fminf(fmaxf(KP_MIN, kp), KP_MAX);
+        kd = fminf(fmaxf(KD_MIN, kd), KD_MAX);
+        i_ff = fminf(fmaxf(I_MIN, i_ff), I_MAX);
+
+        /// convert floats to unsigned ints ///
+        int p_int = float_to_uint(p_des, P_MIN, P_MAX, 16);            
+        int v_int = float_to_uint(v_des, V_MIN, V_MAX, 12);
+        int kp_int = float_to_uint(kp, KP_MIN, KP_MAX, 12);
+        int kd_int = float_to_uint(kd, KD_MIN, KD_MAX, 12);
+        int t_int = float_to_uint(i_ff, I_MIN, I_MAX, 12);
+
+        /// pack ints into the can message ///
+        unsigned char CANMsg_ [8];
+        CANMsg_[0] = p_int>>8;                                       
+        CANMsg_[1] = p_int&0xFF;
+        CANMsg_[2] = v_int>>4;
+        CANMsg_[3] = ((v_int&0xF)<<4)|(kp_int>>8);
+        CANMsg_[4] = kp_int&0xFF;
+        CANMsg_[5] = kd_int>>4;
+        CANMsg_[6] = ((kd_int&0xF)<<4)|(t_int>>8);
+        CANMsg_[7] = t_int&0xff;
+
+        if (isEnabled)
+        {
+            MotorCANInterface_.sendCANFrame(CANMsg_);
+            usleep(motorReplyWaitTime);
+            if (MotorCANInterface_.receiveCANFrame(CANReplyMsg_))
+            {
+                state = decodeCANFrame(CANReplyMsg_);    
+            }
+            else
+            {
+                perror("MotorDriver: Unable to Receive CAN Reply.");
+            }
+        }
+
         return state;
     }
 
-    motorState MotorDriver::sendRadCommand()
+    motorState MotorDriver::sendDegreeCommand()
     {
         motorState state;
         return state;

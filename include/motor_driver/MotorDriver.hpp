@@ -26,8 +26,8 @@ namespace motor_driver
     	motorState disableMotor();
     	motorState enableMotor();
     	motorState setZeroPosition();
+        motorState sendRadCommand(float p_des, float v_des, float kp, float kd, float i_ff);
     	motorState sendDegreeCommand();
-        motorState sendRadCommand();
     	motorState sendTorqueCommand();
     	
 		// Fixed Messages for Enabling, Disabling, and setting Zero Position on the Motor

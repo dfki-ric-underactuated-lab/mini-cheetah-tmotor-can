@@ -1,8 +1,6 @@
 #ifndef MOTOR_PARAMETERS_HPP
 #define MOTOR_PARAMETERS_HPP
 
-
-
 // Motor Value Limits
 #define P_MIN -95.5f        // Radians
 #define P_MAX 95.5f        
