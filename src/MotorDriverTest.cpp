@@ -7,6 +7,8 @@
 
 int main(int argc, char **argv)
 {
+	motor_driver::MotorDriver motor_controller(0x01, "can0");
+	
     // std::cout << "Test Executable" << std::endl;
     // CAN_interface::CANInterface TestCANInterface ("vcan0");
     // motor_driver::MotorDriver TestMotor;

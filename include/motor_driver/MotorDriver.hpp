@@ -29,6 +29,19 @@ namespace motor_driver
     	motorState sendDegreeCommand();
         motorState sendRadCommand();
     	motorState sendTorqueCommand();
+    	
+		// Fixed Messages for Enabling, Disabling, and setting Zero Position on the Motor
+
+		unsigned char motorEnableMsg[8];
+
+		unsigned char motorDisableMsg[8];
+
+		unsigned char motorSetZeroPositionMsg[8];
+
+		// Motor takes about 220 micro-seconds to respond. This delay ensures that the motor gets enough
+		// time to respond. From Ben Katz Google Docs Documentation: 
+		// https://docs.google.com/document/d/1dzNVzblz6mqB3eZVEMyi2MtSngALHdgpTaDJIW_BpS4/edit
+		unsigned int motorReplyWaitTime;
 
     private:
         bool isEnabled;
