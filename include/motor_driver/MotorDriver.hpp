@@ -13,7 +13,7 @@ namespace motor_driver
     struct motorState{
         float position;
         float velocity;
-        float current;
+        float torque;
     };
 
     class MotorDriver{

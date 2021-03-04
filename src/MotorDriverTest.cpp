@@ -5,9 +5,19 @@
 #include <string.h>
 #include <iostream>
 
+using namespace std;
+
 int main(int argc, char **argv)
 {
 	motor_driver::MotorDriver motor_controller(0x01, "can0");
+	
+	cout<<"Enabling Motor"<<endl;
+	motor_driver::motorState state1 = motor_controller.enableMotor();
+	cout<<"Position: "<<state1.position<<"Velocity: "<<state1.velocity<<"Torque: "<<state1.torque<<endl;
+	
+	cout<<"Disabling Motor"<<endl;	
+	motor_driver::motorState state2 = motor_controller.disableMotor();
+	cout<<"Position: "<<state2.position<<"Velocity: "<<state2.velocity<<"Torque: "<<state2.torque<<endl;
 	
     // std::cout << "Test Executable" << std::endl;
     // CAN_interface::CANInterface TestCANInterface ("vcan0");

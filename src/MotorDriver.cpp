@@ -128,7 +128,7 @@ namespace motor_driver
 
         state.position = p;
         state.velocity = v;
-        state.current = i;
+        state.torque = i;
 
         return state;
     }
