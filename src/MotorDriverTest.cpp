@@ -3,26 +3,95 @@
 #include "motor_driver/MotorDriver.hpp"
 
 #include <string.h>
+#include <fstream>
+#include <stdio.h>
 #include <iostream>
+#include <vector>
+#include <chrono>
 
 using namespace std;
+
+using namespace std::chrono;
+
+// Get time stamp in microseconds.
+uint64_t get_time_in_microseconds()
+{
+    uint64_t us = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::
+                  now().time_since_epoch()).count();
+    return us; 
+}
 
 int main(int argc, char **argv)
 {
 	motor_driver::MotorDriver motor_controller(0x01, "can0");
 	
-	cout<<"Enabling Motor"<<endl;
-	motor_driver::motorState state1 = motor_controller.enableMotor();
-	cout<<"Position: "<<state1.position<<" Velocity: "<<state1.velocity<<" Torque: "<<state1.torque<<endl;
+	cout<<"Enabling Motor..."<<endl;
+	motor_driver::motorState start_state = motor_controller.enableMotor();
+	cout<<"Position: "<<start_state.position<<" Velocity: "<<start_state.velocity<<" Torque: "<<start_state.torque<<endl;
 	
     cout<<"Setting Zero Position..."<<endl;
     motor_driver::motorState stateZero = motor_controller.setZeroPosition();
-
     cout<<"Position: "<<stateZero.position<<" Velocity: "<<stateZero.velocity<<" Torque: "<<stateZero.torque<<endl; 
+	
+	
+    /*
+    cout<<"Sending rad command..."<<endl;
+	motor_driver::motorState state = motor_controller.sendRadCommand(0.1, 0.0, 10.0, 0.1, 0.0);
+    cout<<"Position: "<<state.position<<" Velocity: "<<state.velocity<<" Torque: "<<state.torque<<endl; 
+    */
 
-	cout<<"Disabling Motor"<<endl;	
-	motor_driver::motorState state2 = motor_controller.disableMotor();
-	cout<<"Position: "<<state2.position<<" Velocity: "<<state2.velocity<<" Torque: "<<state2.torque<<endl;
+	std::vector<float> des_pos, des_vel, des_effort;	// desired data
+	std::vector<float> pos, vel, effort;	// measured data
+		
+	uint64_t current_time_us, last_time_us, control_freq; 
+	
+	uint64_t elapsed_time = 0;
+	
+	control_freq = 1000;	
+	
+	uint64_t total_time_s = 20;
+	
+	cout<<"Recording Data..."<<endl;	
+		
+	while (elapsed_time < control_freq*total_time_s) {
+		current_time_us = get_time_in_microseconds();
+		if(current_time_us - last_time_us > control_freq){
+			// Do Stuff here at 1Hz
+			//cout<<"I say Hello at 1 KHz"<<endl;
+			motor_driver::motorState state = motor_controller.sendRadCommand(0.0, 0.0, 5.0, 0.1, 0.0);
+			pos.push_back(state.position);
+			vel.push_back(state.velocity);
+			effort.push_back(state.torque);
+			
+			des_pos.push_back(0.0);
+			des_vel.push_back(0.0);
+			des_effort.push_back(0.0);
+						
+			last_time_us = current_time_us;
+			elapsed_time += 1;
+		}
+	}
 
+	cout<<"Disabling Motor..."<<endl;	
+	motor_driver::motorState end_state = motor_controller.disableMotor();
+	cout<<"Position: "<<end_state.position<<" Velocity: "<<end_state.velocity<<" Torque: "<<end_state.torque<<endl;
+	
+	cout<<"Exporting the csv files..."<<endl;	
+	ofstream measured_data_file("measured_data.csv");
+	ofstream desired_data_file("desired_data.csv");
+
+	measured_data_file << "pos" << "," << "vel" << "," << "effort" << endl;		
+	desired_data_file << "pos" << "," << "vel" << "," << "effort" << endl;		
+
+	for(uint i = 0; i < pos.size(); i++){
+	measured_data_file << pos[i] << "," << vel[i] << "," << effort[i] << endl;		
+	desired_data_file << des_pos[i] << "," << des_vel[i] << "," << des_effort[i] << endl;	
+	}
+	
+	measured_data_file.close();
+	desired_data_file.close();
+	
+	cout<<"Finshed csv exports..."<<endl;	
+	
     return 0;
 }
