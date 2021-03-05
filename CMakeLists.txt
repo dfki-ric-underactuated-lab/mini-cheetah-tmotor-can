@@ -26,11 +26,19 @@ set(LIBRARY_HEADER ${INCLUDE_DIR}/MotorDriver.hpp
 		   ${INCLUDE_DIR}/CANCommand.hpp
 	           ${INCLUDE_DIR}/Parameters.hpp)
 
-add_library(${PROJECT_NAME} ${LIBRARY_SOURCE} ${LIBRARY_HEADER})
+# Create an Object to Make both Static and Shared Libraries in the same CMakeLists File.
+add_library(${PROJECT_NAME}-object OBJECT ${LIBRARY_SOURCE} ${LIBRARY_HEADER})
+
+# this is only needed for older compilers but doesn't hurt either to have it
+set_target_properties(${PROJECT_NAME}-object PROPERTIES POSITION_INDEPENDENT_CODE 1)
+
+add_library(${PROJECT_NAME} SHARED $<TARGET_OBJECTS:${PROJECT_NAME}-object>)
+
+add_library(${PROJECT_NAME}-static STATIC $<TARGET_OBJECTS:${PROJECT_NAME}-object>)
 
 add_executable(MotorDriverTest ${SOURCE_DIR}/MotorDriverTest.cpp)
 
-target_link_libraries(MotorDriverTest ${PROJECT_NAME})
+target_link_libraries(MotorDriverTest ${PROJECT_NAME}-static)
 
 INSTALL(TARGETS ${PROJECT_NAME}
         RUNTIME DESTINATION bin
