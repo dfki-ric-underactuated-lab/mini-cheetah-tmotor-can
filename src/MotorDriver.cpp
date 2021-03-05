@@ -143,17 +143,22 @@ namespace motor_driver
         return state;
     }
 
-    motorState MotorDriver::sendDegreeCommand()
+    motorState MotorDriver::sendDegreeCommand(float p_des, float v_des, float kp, float kd, float i_ff)
     {
         motorState state;
+        p_des = p_des * (pi / 180);
+        v_des = v_des * (pi / 180);
+
+        state = sendRadCommand(p_des, v_des, kp, kd, i_ff);
+
         return state;
     }
 
-    motorState MotorDriver::sendTorqueCommand()
-    {
-        motorState state;
-        return state;
-    }
+    // motorState MotorDriver::sendTorqueCommand()
+    // {
+    //     motorState state;
+    //     return state;
+    // }
 
     motorState MotorDriver::decodeCANFrame(unsigned char* CANReplyMsg_)
     {
@@ -191,26 +196,4 @@ namespace motor_driver
         return ((float)x_int)*span/((float)((1<<bits)-1)) + offset;
     }
 
-    float MotorDriver::fmaxf3(float x, float y, float z)
-    {
-        /// Returns maximum of x, y, z ///
-        return (x > y ? (x > z ? x : z) : (y > z ? y : z));
-    }
-
-    float MotorDriver::fminf3(float x, float y, float z)
-    {
-        /// Returns minimum of x, y, z ///
-        return (x < y ? (x < z ? x : z) : (y < z ? y : z));
-    }
-
-    void MotorDriver::limit_norm(float *x, float *y, float limit)
-    {
-        /// Scales the lenght of vector (x, y) to be <= limit ///
-        float norm = sqrt(*x * *x + *y * *y);
-        if (norm > limit)
-        {
-            *x = *x * limit/norm;
-            *y = *y * limit/norm;
-        }
-    }
 } // motor driver namespace

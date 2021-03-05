@@ -27,8 +27,8 @@ namespace motor_driver
     	motorState enableMotor();
     	motorState setZeroPosition();
         motorState sendRadCommand(float p_des, float v_des, float kp, float kd, float i_ff);
-    	motorState sendDegreeCommand();
-    	motorState sendTorqueCommand();
+    	motorState sendDegreeCommand(float p_des, float v_des, float kp, float kd, float i_ff);
+    	// motorState sendTorqueCommand();
     	
 		// Fixed Messages for Enabling, Disabling, and setting Zero Position on the Motor
 
@@ -44,6 +44,7 @@ namespace motor_driver
 		unsigned int motorReplyWaitTime;
 
     private:
+        double pi = 3.14159265359;
         bool isEnabled;
         uint32_t motor_id_;
         unsigned char CANReplyMsg_ [8];
@@ -53,12 +54,6 @@ namespace motor_driver
         // Taken from Ben Katz mbed repo https://os.mbed.com/users/benkatz/code/MotorModuleExample/
         int float_to_uint(float x, float x_min, float x_max, int bits);
         float uint_to_float(int x_int, float x_min, float x_max, int bits);
-        // Already in math.h
-        // float fmaxf(float x, float y);
-        // float fminf(float x, float y);
-        float fmaxf3(float x, float y, float z);
-        float fminf3(float x, float y, float z);
-        void limit_norm(float *x, float *y, float limit);
     };
 
 }
