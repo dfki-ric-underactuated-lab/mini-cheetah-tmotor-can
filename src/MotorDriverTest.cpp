@@ -1,4 +1,5 @@
 #include "CANInterface.hpp"
+#include "csv.h"
 
 #include "motor_driver/MotorDriver.hpp"
 
@@ -13,6 +14,22 @@ using namespace std;
 
 using namespace std::chrono;
 
+void extract_joint_traj(string filename, std::vector<float>& time_vec, std::vector<float>& pos_vec, std::vector<float>& vel_vec, std::vector<float>& effort_vec)
+{
+	io::CSVReader<4> in(filename);
+	in.read_header(io::ignore_extra_column, 
+	"time", "pos", "vel", "torque");
+
+	float time,pos,vel,effort;	
+			  
+	while(in.read_row(time, pos, vel, effort)){
+		time_vec.push_back(time);	
+		pos_vec.push_back(pos);
+		vel_vec.push_back(vel);
+		effort_vec.push_back(effort);	
+	}  
+}
+
 // Get time stamp in microseconds.
 uint64_t get_time_in_microseconds()
 {
@@ -23,6 +40,14 @@ uint64_t get_time_in_microseconds()
 
 int main(int argc, char **argv)
 {
+	
+	string traj_filepath = "/home/dfki.uni-bremen.de/skumar/repos/githb/underactuated-robotics/simple_pendulum/trajectory_optimisation/traj_opt_traj.csv";
+	std::vector<float> desired_time_vec, desired_pos_vec, desired_vel_vec,  desired_effort_vec;
+	extract_joint_traj(traj_filepath, desired_time_vec, desired_pos_vec, desired_vel_vec,  desired_effort_vec);
+	for(uint i = 0; i < desired_time_vec.size(); i++){
+	cout << desired_time_vec[i] << "," << desired_pos_vec[i] << "," << desired_vel_vec[i] << "," << desired_effort_vec[i] << endl;		
+	}
+	
 	motor_driver::MotorDriver motor_controller(0x01, "can0");
 	
 	cout<<"Enabling Motor..."<<endl;

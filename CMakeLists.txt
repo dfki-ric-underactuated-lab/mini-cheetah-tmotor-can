@@ -2,6 +2,13 @@ cmake_minimum_required(VERSION 3.0)
 
 project(mini_cheetah_motor_driver)
 
+if(WIN32)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
+else(WIN32)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+endif(WIN32)
+
+
 set (CMAKE_CXX_STANDARD 11)
 
 set(SOURCE_DIR ${PROJECT_SOURCE_DIR}/src)
@@ -26,6 +33,9 @@ set(LIBRARY_HEADER ${INCLUDE_DIR}/MotorDriver.hpp
 		   ${INCLUDE_DIR}/CANCommand.hpp
 	           ${INCLUDE_DIR}/Parameters.hpp)
 
+# find threads - needed for header only csv parser used in this project
+find_package (Threads)
+
 # Create an Object to Make both Static and Shared Libraries in the same CMakeLists File.
 add_library(${PROJECT_NAME}-object OBJECT ${LIBRARY_SOURCE} ${LIBRARY_HEADER})
 
@@ -38,7 +48,7 @@ add_library(${PROJECT_NAME}-static STATIC $<TARGET_OBJECTS:${PROJECT_NAME}-objec
 
 add_executable(MotorDriverTest ${SOURCE_DIR}/MotorDriverTest.cpp)
 
-target_link_libraries(MotorDriverTest ${PROJECT_NAME}-static)
+target_link_libraries(MotorDriverTest ${PROJECT_NAME}-static ${CMAKE_THREAD_LIBS_INIT})
 
 INSTALL(TARGETS ${PROJECT_NAME}
         RUNTIME DESTINATION bin
