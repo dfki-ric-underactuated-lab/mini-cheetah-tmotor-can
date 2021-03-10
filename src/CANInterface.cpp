@@ -10,8 +10,13 @@ namespace CAN_interface
         struct sockaddr_can addr; // structure for CAN sockets : address family number AF_CAN
         struct ifreq ifr; // from if.h Interface Request structure used for all socket ioctl's. All interface ioctl's must have parameter definitions which begin with ifr name. The remainder may be interface specific.
 
-
         can_id_ = can_id;
+
+        // Create a filter to receive only messages from this objects motor id
+        // From :https://www.sg-electronic-systems.com/can-bus-mask-on-raspberry/
+        struct can_filter rfilter;
+        rfilter.can_id = can_id_;
+        rfilter.can_mask = 0x7FF;
 
         // socket(int domain, int type, int protocol): returns file descriptor int or -1 if fail
         if ((socket_descrp_ = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0)
@@ -40,6 +45,13 @@ namespace CAN_interface
             if (bind(socket_descrp_, (struct sockaddr *)&addr, sizeof(addr)) < 0)
             {
                perror("CANInterface: Error while binding to the CAN Socket.");
+            }
+            else
+            {
+                std::cout << "The Socket Descriptor for motor id: " << can_id_  << "is: " << socket_descrp_ << std::endl;
+                // If socket was bound succesfully, apply the can filter for the motor ids.
+                setsockopt(socket_descrp_, SOL_CAN_RAW, CAN_RAW_FILTER, &rfilter, sizeof(rfilter));
+
             }
         }
     }
