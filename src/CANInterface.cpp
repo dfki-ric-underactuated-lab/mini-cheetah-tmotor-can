@@ -14,9 +14,11 @@ namespace CAN_interface
 
         // Create a filter to receive only messages from this objects motor id
         // From :https://www.sg-electronic-systems.com/can-bus-mask-on-raspberry/
-        struct can_filter rfilter;
-        rfilter.can_id = can_id_;
-        rfilter.can_mask = 0x7FF;
+        struct can_filter rfilter[1];
+        rfilter[0].can_id = 0x00;
+        rfilter[0].can_mask = CAN_SFF_MASK;
+
+        int loopback = 0; /* 0 = disabled, 1 = enabled (default) */
 
         // socket(int domain, int type, int protocol): returns file descriptor int or -1 if fail
         if ((socket_descrp_ = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0)
@@ -24,6 +26,11 @@ namespace CAN_interface
             perror("CANInterface: Error While Opening CAN Socket");
         }
         else {
+            // If socket was created succesfully, apply the can filter for only receiving from motor and not from master.
+            // setsockopt(socket_descrp_, SOL_CAN_RAW, CAN_RAW_FILTER, &rfilter, sizeof(rfilter));
+
+            setsockopt(socket_descrp_, SOL_CAN_RAW, CAN_RAW_LOOPBACK, &loopback, sizeof(loopback));
+
             // Retrieve the interface index for the interface name (can0, can1, vcan0) to be used to the ifreq struct
             strcpy(ifr.ifr_name, socketName);
 
@@ -49,9 +56,6 @@ namespace CAN_interface
             else
             {
                 std::cout << "The Socket Descriptor for motor id: " << can_id_  << "is: " << socket_descrp_ << std::endl;
-                // If socket was bound succesfully, apply the can filter for the motor ids.
-                setsockopt(socket_descrp_, SOL_CAN_RAW, CAN_RAW_FILTER, &rfilter, sizeof(rfilter));
-
             }
         }
     }
