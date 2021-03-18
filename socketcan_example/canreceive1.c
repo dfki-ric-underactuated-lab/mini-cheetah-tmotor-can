@@ -18,7 +18,7 @@ int main(int argc, char **argv)
     struct ifreq ifr;
     struct can_frame frame;
 
-    printf("CAN Sockets Receive Demo\r\n");
+    printf("CAN Sockets Receive Demo 1: \r\n");
 
     if ((s = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0) {
         perror("Socket");
@@ -36,6 +36,8 @@ int main(int argc, char **argv)
         perror("Bind");
         return 1;
     }
+
+    printf("Socket Descriptor: %d\n", s);
 
     nbytes = read(s, &frame, sizeof(struct can_frame));
 
