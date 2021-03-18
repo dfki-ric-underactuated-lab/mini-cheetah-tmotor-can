@@ -94,6 +94,20 @@ namespace motor_driver
             {
                 perror("MotorDriver: Unable to Receive CAN Reply.");
             }
+
+            while (state.position > (5 * (pi / 180)))
+            {
+                MotorCANInterface_.sendCANFrame(motorSetZeroPositionMsg);
+                usleep(motorReplyWaitTime);
+                if (MotorCANInterface_.receiveCANFrame(CANReplyMsg_))
+                {
+                    state = decodeCANFrame(CANReplyMsg_);    
+                }
+                else
+                {
+                    perror("MotorDriver: Unable to Receive CAN Reply.");
+                }
+            }
         }
         return state;
     }
