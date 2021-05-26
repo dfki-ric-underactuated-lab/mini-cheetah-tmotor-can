@@ -3,20 +3,12 @@
 
 namespace CAN_interface
 {
-    CANInterface::CANInterface(const char* socketName, const uint32_t can_id)
+    CANInterface::CANInterface(const char* socketName)
     {
         // const char* socketIfName = &socketName;  
         // int s;  // File descriptor for the socket as everything in Linux/Unix is a file. 
         struct sockaddr_can addr; // structure for CAN sockets : address family number AF_CAN
         struct ifreq ifr; // from if.h Interface Request structure used for all socket ioctl's. All interface ioctl's must have parameter definitions which begin with ifr name. The remainder may be interface specific.
-
-        can_id_ = can_id;
-
-        // Create a filter to receive only messages from this objects motor id
-        // From :https://www.sg-electronic-systems.com/can-bus-mask-on-raspberry/
-        struct can_filter rfilter[1];
-        rfilter[0].can_id = 0x00;
-        rfilter[0].can_mask = CAN_SFF_MASK;
 
         int loopback = 0; /* 0 = disabled, 1 = enabled (default) */
 
@@ -55,15 +47,15 @@ namespace CAN_interface
             }
             else
             {
-                std::cout << "The Socket Descriptor for motor id: " << can_id_  << "is: " << socket_descrp_ << std::endl;
+                std::cout << "The Socket Descriptor is: " << socket_descrp_ << std::endl;
             }
         }
     }
 
-    bool CANInterface::sendCANFrame(unsigned char* CANMsg)
+    bool CANInterface::sendCANFrame(int can_id, unsigned char* CANMsg)
     {
         struct can_frame frame;
-        frame.can_id = can_id_;
+        frame.can_id = can_id;
         frame.can_dlc = 8;
         memcpy(frame.data, CANMsg, 8);
 

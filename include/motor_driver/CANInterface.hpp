@@ -23,15 +23,14 @@ namespace CAN_interface
     class CANInterface{
 
     public:
-        CANInterface(const char* socketName, const uint32_t can_id);
+        CANInterface(const char* socketName);
 
         ~CANInterface();
-        bool sendCANFrame(unsigned char* CANMsg);
+        bool sendCANFrame(int can_id, unsigned char* CANMsg);
         bool receiveCANFrame(unsigned char* CANMsg);
 
     private:
         int socket_descrp_; // File descriptor for the socket as everything in Linux/Unix is a file.
-        uint32_t can_id_;
 
     };
 

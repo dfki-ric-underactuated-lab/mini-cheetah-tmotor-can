@@ -5,12 +5,15 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <math.h>
+#include <vector>
+#include <map>
 #include "Parameters.hpp"
 #include "CANInterface.hpp"
 
 namespace motor_driver
 {
     struct motorState{
+        int motor_id;
         float position;
         float velocity;
         float torque;
@@ -19,15 +22,15 @@ namespace motor_driver
     class MotorDriver{
 
     public:
-        MotorDriver(const uint32_t motor_id, const char* motor_can_socket);
+        MotorDriver(std::vector<int> motor_ids, const char* motor_can_socket);
 
     	~MotorDriver();
 
-    	motorState disableMotor();
-    	motorState enableMotor();
-    	motorState setZeroPosition();
-        motorState sendRadCommand(float p_des, float v_des, float kp, float kd, float i_ff);
-    	motorState sendDegreeCommand(float p_des, float v_des, float kp, float kd, float i_ff);
+    	std::map<int, motorState> disableMotor(std::vector<int> disable_motor_ids);
+    	std::map<int, motorState> enableMotor(std::vector<int> enable_motor_ids);
+    	std::map<int, motorState> setZeroPosition(std::vector<int> zero_motor_ids);
+        std::map<int, motorState> sendRadCommand(float p_des, float v_des, float kp, float kd, float i_ff);
+    	std::map<int, motorState> sendDegreeCommand(float p_des, float v_des, float kp, float kd, float i_ff);
     	// motorState sendTorqueCommand();
     	
 		// Fixed Messages for Enabling, Disabling, and setting Zero Position on the Motor
@@ -45,8 +48,8 @@ namespace motor_driver
 
     private:
         double pi = 3.14159265359;
-        bool isEnabled;
-        uint32_t motor_id_;
+        std::map<int, bool> isMotorEnabled;
+        const std::vector<int> motor_ids_;
         unsigned char CANReplyMsg_ [8];
         CAN_interface::CANInterface MotorCANInterface_;
         motorState decodeCANFrame(unsigned char* CANReplyMsg_);
