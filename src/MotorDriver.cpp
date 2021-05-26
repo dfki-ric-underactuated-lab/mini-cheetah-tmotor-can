@@ -34,14 +34,6 @@ namespace motor_driver
 		motorSetZeroPositionMsg[6] = 0xFF;
 		motorSetZeroPositionMsg[7] = 0xFE;
 
-        // The usleep() is not very accurate on non-realtime systems. So the actual sleep time is 
-        // higher than asked for. The Google Docs by Ben Katz shows round trip time to be ~230us.
-        // Looking at the oscilliscope image, the time taken to reply is ~120us after the message
-        // is sent. Hence here we set it to 100us given that the system always takes longer than
-        // what is asked for.
-        // Adjust this parameter if running on real-time system.
-		motorReplyWaitTime = 100;
-
         // Initialize all Motors to not enabled.
         for (int idIdx = 0; idIdx < motor_ids.size(); idIdx++)
         {
@@ -161,69 +153,85 @@ namespace motor_driver
         }
        return motor_status_map;
     }
-    
 
-    //     motorState MotorDriver::sendRadCommand(float p_des, float v_des, float kp, float kd, float i_ff)
-    // {
-    //     motorState state;
-    //     // Apply Saturation based on the limits
-    //     p_des = fminf(fmaxf(P_MIN, p_des), P_MAX);
-    //     v_des = fminf(fmaxf(V_MIN, v_des), V_MAX);
-    //     kp = fminf(fmaxf(KP_MIN, kp), KP_MAX);
-    //     kd = fminf(fmaxf(KD_MIN, kd), KD_MAX);
-    //     i_ff = fminf(fmaxf(I_MIN, i_ff), I_MAX);
 
-    //     /// convert floats to unsigned ints ///
-    //     int p_int = float_to_uint(p_des, P_MIN, P_MAX, 16);            
-    //     int v_int = float_to_uint(v_des, V_MIN, V_MAX, 12);
-    //     int kp_int = float_to_uint(kp, KP_MIN, KP_MAX, 12);
-    //     int kd_int = float_to_uint(kd, KD_MIN, KD_MAX, 12);
-    //     int t_int = float_to_uint(i_ff, I_MIN, I_MAX, 12);
+    std::map<int, motorState> MotorDriver::sendRadCommand(std::map<int, motorCommand> motorRadCommands)
+    {
+        std::map<int, motorState> motor_status_map;
+        motorState state;
+        int cmdMotorID;
+        motorCommand cmdToSend;
+        for (std::pair<int, motorCommand> commandIter : motorRadCommands)
+        {
+            cmdMotorID = commandIter.first;
+            cmdToSend = commandIter.second;
+            // Apply Saturation based on the limits
+            cmdToSend.p_des = fminf(fmaxf(P_MIN, cmdToSend.p_des), P_MAX);
+            cmdToSend.v_des = fminf(fmaxf(V_MIN, cmdToSend.v_des), V_MAX);
+            cmdToSend.kp = fminf(fmaxf(KP_MIN, cmdToSend.kp), KP_MAX);
+            cmdToSend.kd = fminf(fmaxf(KD_MIN, cmdToSend.kd), KD_MAX);
+            cmdToSend.tau_ff = fminf(fmaxf(I_MIN, cmdToSend.tau_ff), I_MAX);
+            // convert floats to unsigned ints
+            int p_int = float_to_uint(cmdToSend.p_des, P_MIN, P_MAX, 16);            
+            int v_int = float_to_uint(cmdToSend.v_des, V_MIN, V_MAX, 12);
+            int kp_int = float_to_uint(cmdToSend.kp, KP_MIN, KP_MAX, 12);
+            int kd_int = float_to_uint(cmdToSend.kd, KD_MIN, KD_MAX, 12);
+            int t_int = float_to_uint(cmdToSend.tau_ff, I_MIN, I_MAX, 12);
 
-    //     /// pack ints into the can message ///
-    //     unsigned char CANMsg_ [8];
-    //     CANMsg_[0] = p_int>>8;                                       
-    //     CANMsg_[1] = p_int&0xFF;
-    //     CANMsg_[2] = v_int>>4;
-    //     CANMsg_[3] = ((v_int&0xF)<<4)|(kp_int>>8);
-    //     CANMsg_[4] = kp_int&0xFF;
-    //     CANMsg_[5] = kd_int>>4;
-    //     CANMsg_[6] = ((kd_int&0xF)<<4)|(t_int>>8);
-    //     CANMsg_[7] = t_int&0xff;
+            // pack ints into the can message
+            unsigned char CANMsg_ [8];
+            CANMsg_[0] = p_int>>8;                                       
+            CANMsg_[1] = p_int&0xFF;
+            CANMsg_[2] = v_int>>4;
+            CANMsg_[3] = ((v_int&0xF)<<4)|(kp_int>>8);
+            CANMsg_[4] = kp_int&0xFF;
+            CANMsg_[5] = kd_int>>4;
+            CANMsg_[6] = ((kd_int&0xF)<<4)|(t_int>>8);
+            CANMsg_[7] = t_int&0xff;
 
-    //     if (isEnabled)
-    //     {
-    //         MotorCANInterface_.sendCANFrame(CANMsg_);
-    //         usleep(motorReplyWaitTime);
-    //         if (MotorCANInterface_.receiveCANFrame(CANReplyMsg_))
-    //         {
-    //             state = decodeCANFrame(CANReplyMsg_);    
-    //         }
-    //         else
-    //         {
-    //             perror("MotorDriver: Unable to Receive CAN Reply.");
-    //         }
-    //     }
+            if (isMotorEnabled[cmdMotorID])
+            {
+                MotorCANInterface_.sendCANFrame(cmdMotorID, CANMsg_);
+                usleep(motorReplyWaitTime);
+                if (MotorCANInterface_.receiveCANFrame(CANReplyMsg_))
+                {
+                    state = decodeCANFrame(CANReplyMsg_);
+                    motor_status_map[cmdMotorID] = state;   
+                }
+                else
+                {
+                    perror("MotorDriver::sendRadCommand() Unable to Receive CAN Reply.");
+                }
+            }
+            else
+            {
+                perror("MotorDriver::sendRadCommand() Motor in disabled state.");
+            }
+        }
 
-    //     return state;
-    // }
+        return motor_status_map;
+    }
 
-    // motorState MotorDriver::sendDegreeCommand(float p_des, float v_des, float kp, float kd, float i_ff)
-    // {
-    //     motorState state;
-    //     p_des = p_des * (pi / 180);
-    //     v_des = v_des * (pi / 180);
+    std::map<int, motorState> MotorDriver::sendDegreeCommand(std::map<int, motorCommand> motorDegCommands)
+    {
+        std::map<int, motorState> motor_status_map;
+        std::map<int, motorCommand> motorRadCommands;
+        int cmdMotorID;
+        motorCommand cmdToSend;
+        for (std::pair<int, motorCommand> commandIter : motorDegCommands)
+        {
+            cmdMotorID = commandIter.first;
+            cmdToSend = commandIter.second;
+            cmdToSend.p_des = cmdToSend.p_des * (pi / 180);
+            cmdToSend.v_des = cmdToSend.v_des * (pi / 180);
+            motorRadCommands[cmdMotorID] = cmdToSend;
+        }
 
-    //     state = sendRadCommand(p_des, v_des, kp, kd, i_ff);
+        motor_status_map = sendRadCommand(motorRadCommands);
 
-    //     return state;
-    // }
+        return motor_status_map;
+    }
 
-    // // motorState MotorDriver::sendTorqueCommand()
-    // // {
-    // //     motorState state;
-    // //     return state;
-    // // }
 
     motorState MotorDriver::decodeCANFrame(unsigned char* CANReplyMsg_)
     {
@@ -246,6 +254,7 @@ namespace motor_driver
         return state;
     }
 
+
     int MotorDriver::float_to_uint(float x, float x_min, float x_max, int bits)
     {
         /// Converts a float to an unsigned int, given range and number of bits ///
@@ -253,6 +262,7 @@ namespace motor_driver
         float offset = x_min;
         return (int) ((x-offset)*((float)((1<<bits)-1))/span);
     }
+
 
     float MotorDriver::uint_to_float(int x_int, float x_min, float x_max, int bits)
     {

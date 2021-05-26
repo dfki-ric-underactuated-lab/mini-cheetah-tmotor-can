@@ -19,6 +19,14 @@ namespace motor_driver
         float torque;
     };
 
+    struct motorCommand{
+        float p_des;
+        float v_des;
+        float kp;
+        float kd;
+        float tau_ff;       
+    };
+
     class MotorDriver{
 
     public:
@@ -29,9 +37,8 @@ namespace motor_driver
     	std::map<int, motorState> disableMotor(std::vector<int> disable_motor_ids);
     	std::map<int, motorState> enableMotor(std::vector<int> enable_motor_ids);
     	std::map<int, motorState> setZeroPosition(std::vector<int> zero_motor_ids);
-        std::map<int, motorState> sendRadCommand(float p_des, float v_des, float kp, float kd, float i_ff);
-    	std::map<int, motorState> sendDegreeCommand(float p_des, float v_des, float kp, float kd, float i_ff);
-    	// motorState sendTorqueCommand();
+        std::map<int, motorState> sendRadCommand(std::map<int, motorCommand>);
+    	std::map<int, motorState> sendDegreeCommand(std::map<int, motorCommand>);
     	
 		// Fixed Messages for Enabling, Disabling, and setting Zero Position on the Motor
 
@@ -41,10 +48,14 @@ namespace motor_driver
 
 		unsigned char motorSetZeroPositionMsg[8];
 
-		// Motor takes about 220 micro-seconds to respond. This delay ensures that the motor gets enough
-		// time to respond. From Ben Katz Google Docs Documentation: 
+		// The usleep() is not very accurate on non-realtime systems. So the actual sleep time is 
+        // higher than asked for. The Google Docs by Ben Katz shows round trip time to be ~230us.
+        // Looking at the oscilliscope image, the time taken to reply is ~120us after the message
+        // is sent. Hence here we set it to 100us given that the Ubuntu system always takes longer
+        // than what is asked for.
+        // Adjust this parameter if running on real-time system.
 		// https://docs.google.com/document/d/1dzNVzblz6mqB3eZVEMyi2MtSngALHdgpTaDJIW_BpS4/edit
-		unsigned int motorReplyWaitTime;
+		unsigned int motorReplyWaitTime = 100;
 
     private:
         double pi = 3.14159265359;
