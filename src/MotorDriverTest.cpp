@@ -9,6 +9,7 @@
 #include <iostream>
 #include <vector>
 #include <chrono>
+#include <thread>
 
 using namespace std;
 
@@ -37,6 +38,19 @@ int main(int argc, char **argv)
     cout<<"Position: "<<stateZero[motor_ids[0]].position<<" Velocity: "<<stateZero[motor_ids[0]].velocity<<" Torque: "<<stateZero[motor_ids[0]].torque<<endl; 
 	cout<<"Position: "<<stateZero[motor_ids[1]].position<<" Velocity: "<<stateZero[motor_ids[1]].velocity<<" Torque: "<<stateZero[motor_ids[1]].torque<<endl; 
 	
+	motor_driver::motorCommand commandStruct = {1.57, 0, 50, 2, 0}; 
+
+	std::map<int, motor_driver::motorCommand> commandMap = {{6, commandStruct}, {7, commandStruct}};
+	auto startT = get_time_in_microseconds();
+	auto commandState = motor_controller.sendRadCommand(commandMap);
+	auto endT = get_time_in_microseconds();
+
+	auto dt = (endT - startT);
+
+	std::cout << "Time Taken for Command: " << dt << std::endl; 
+
+	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
 	cout<<"Disabling Motor..."<<endl;	
 	auto end_state = motor_controller.disableMotor(motor_ids);
 	cout<<"Position: "<<end_state[motor_ids[0]].position<<" Velocity: "<<end_state[motor_ids[0]].velocity<<" Torque: "<<end_state[motor_ids[0]].torque<<endl;

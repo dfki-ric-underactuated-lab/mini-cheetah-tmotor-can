@@ -73,7 +73,7 @@ namespace motor_driver
         // is sent. Hence here we set it to 100us given that the Ubuntu system always takes longer
         // than what is asked for.
         // Adjust this parameter if running on real-time system.
-		unsigned int motorReplyWaitTime = 100;
+		unsigned int motorReplyWaitTime = 10;
 
     private:
         motorParams currentParams;
