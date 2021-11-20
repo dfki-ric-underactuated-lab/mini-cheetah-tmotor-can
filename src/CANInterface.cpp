@@ -3,20 +3,12 @@
 
 namespace CAN_interface
 {
-    CANInterface::CANInterface(const char* socketName, const uint32_t can_id)
+    CANInterface::CANInterface(const char* socketName)
     {
         // const char* socketIfName = &socketName;  
         // int s;  // File descriptor for the socket as everything in Linux/Unix is a file. 
         struct sockaddr_can addr; // structure for CAN sockets : address family number AF_CAN
         struct ifreq ifr; // from if.h Interface Request structure used for all socket ioctl's. All interface ioctl's must have parameter definitions which begin with ifr name. The remainder may be interface specific.
-
-        can_id_ = can_id;
-
-        // Create a filter to receive only messages from this objects motor id
-        // From :https://www.sg-electronic-systems.com/can-bus-mask-on-raspberry/
-        struct can_filter rfilter[1];
-        rfilter[0].can_id = 0x00;
-        rfilter[0].can_mask = CAN_SFF_MASK;
 
         int loopback = 0; /* 0 = disabled, 1 = enabled (default) */
 
@@ -26,7 +18,7 @@ namespace CAN_interface
             perror("CANInterface: Error While Opening CAN Socket");
         }
         else {
-            // If socket was created succesfully, apply the can filter for only receiving from motor and not from master.
+            // If socket was created successfully, apply the can filter for only receiving from motor and not from master.
             // setsockopt(socket_descrp_, SOL_CAN_RAW, CAN_RAW_FILTER, &rfilter, sizeof(rfilter));
 
             setsockopt(socket_descrp_, SOL_CAN_RAW, CAN_RAW_LOOPBACK, &loopback, sizeof(loopback));
@@ -36,7 +28,7 @@ namespace CAN_interface
 
             // Send an I/O control call and pass an ifreq structure containing the interface name
             // ioctl() system call manipulates the underlying device parameters of special files. 
-            // SIOCGIFINDEX Retrieve the interface index of the interface into ifr_ifindex insude ifr struct.
+            // SIOCGIFINDEX Retrieve the interface index of the interface into ifr_ifindex inside ifr struct.
             ioctl(socket_descrp_, SIOCGIFINDEX, &ifr);
 
             // with the interface index, now bind the socket to the CAN Interface
@@ -55,15 +47,15 @@ namespace CAN_interface
             }
             else
             {
-                std::cout << "The Socket Descriptor for motor id: " << can_id_  << "is: " << socket_descrp_ << std::endl;
+                std::cout << "The Socket Descriptor is: " << socket_descrp_ << std::endl;
             }
         }
     }
 
-    bool CANInterface::sendCANFrame(unsigned char* CANMsg)
+    bool CANInterface::sendCANFrame(int can_id, unsigned char* CANMsg)
     {
         struct can_frame frame;
-        frame.can_id = can_id_;
+        frame.can_id = can_id;
         frame.can_dlc = 8;
         memcpy(frame.data, CANMsg, 8);
 
@@ -80,9 +72,7 @@ namespace CAN_interface
 
     bool CANInterface::receiveCANFrame(unsigned char* CANMsg)
     {
-        // Need to implement the filterting of the messages from the CAN ID requested.
-        // Currently the CAN ID is not used at all here as it listens to all CAN messages.
-
+        // Listen to all CAN messages. Filter by Motor ID later in the motor driver class.
         struct can_frame frame;
 
         if (read(socket_descrp_, &frame, sizeof(struct can_frame)) < 0)

@@ -5,32 +5,40 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <math.h>
+#include <vector>
+#include <map>
 #include "Parameters.hpp"
 #include "CANInterface.hpp"
 
 namespace motor_driver
 {
     struct motorState{
+        int motor_id;
         float position;
         float velocity;
         float torque;
     };
 
+    struct motorCommand{
+        float p_des;
+        float v_des;
+        float kp;
+        float kd;
+        float tau_ff;       
+    };
+
     class MotorDriver{
 
     public:
-        MotorDriver(const uint32_t motor_id, const char* motor_can_socket);
+        MotorDriver(std::vector<int> motor_ids, const char* motor_can_socket);
 
     	~MotorDriver();
 
-    	motorState disableMotor();
-    	motorState enableMotor();
-    	motorState setZeroPosition();
-        motorState sendRadCommand(float p_des, float v_des, float kp, float kd, float i_ff);
-    	motorState sendDegreeCommand(float p_des, float v_des, float kp, float kd, float i_ff);
-    	// motorState sendTorqueCommand();
-    	
-		// Fixed Messages for Enabling, Disabling, and setting Zero Position on the Motor
+    	std::map<int, motorState> disableMotor(std::vector<int> disable_motor_ids);
+    	std::map<int, motorState> enableMotor(std::vector<int> enable_motor_ids);
+    	std::map<int, motorState> setZeroPosition(std::vector<int> zero_motor_ids);
+        std::map<int, motorState> sendRadCommand(std::map<int, motorCommand>);
+    	std::map<int, motorState> sendDegreeCommand(std::map<int, motorCommand>);
 
 		unsigned char motorEnableMsg[8];
 
@@ -38,15 +46,18 @@ namespace motor_driver
 
 		unsigned char motorSetZeroPositionMsg[8];
 
-		// Motor takes about 220 micro-seconds to respond. This delay ensures that the motor gets enough
-		// time to respond. From Ben Katz Google Docs Documentation: 
-		// https://docs.google.com/document/d/1dzNVzblz6mqB3eZVEMyi2MtSngALHdgpTaDJIW_BpS4/edit
-		unsigned int motorReplyWaitTime;
+		// The usleep() is not very accurate on non-realtime systems. So the actual sleep time is 
+        // higher than asked for. The Google Docs by Ben Katz shows round trip time to be ~230us.
+        // Looking at the oscilloscope image, the time taken to reply is ~120us after the message
+        // is sent. Hence here we set it to 100us given that the Ubuntu system always takes longer
+        // than what is asked for.
+        // Adjust this parameter if running on real-time system.
+		unsigned int motorReplyWaitTime = 100;
 
     private:
         double pi = 3.14159265359;
-        bool isEnabled;
-        uint32_t motor_id_;
+        std::map<int, bool> isMotorEnabled;
+        const std::vector<int> motor_ids_;
         unsigned char CANReplyMsg_ [8];
         CAN_interface::CANInterface MotorCANInterface_;
         motorState decodeCANFrame(unsigned char* CANReplyMsg_);

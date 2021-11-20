@@ -51,8 +51,8 @@ add_executable(MotorDriverTest ${SOURCE_DIR}/MotorDriverTest.cpp)
 target_link_libraries(MotorDriverTest ${PROJECT_NAME}-static ${CMAKE_THREAD_LIBS_INIT})
 
 # Add execuatble for a trajectory following test
-add_executable(MotorTrajTest ${SOURCE_DIR}/MotorDriverTrajTest.cpp)
-target_link_libraries(MotorTrajTest ${PROJECT_NAME}-static ${CMAKE_THREAD_LIBS_INIT})
+# add_executable(MotorTrajTest ${SOURCE_DIR}/MotorDriverTrajTest.cpp)
+# target_link_libraries(MotorTrajTest ${PROJECT_NAME}-static ${CMAKE_THREAD_LIBS_INIT})
 
 INSTALL(TARGETS ${PROJECT_NAME}
         RUNTIME DESTINATION bin
