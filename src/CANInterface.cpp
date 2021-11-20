@@ -18,7 +18,7 @@ namespace CAN_interface
             perror("CANInterface: Error While Opening CAN Socket");
         }
         else {
-            // If socket was created succesfully, apply the can filter for only receiving from motor and not from master.
+            // If socket was created successfully, apply the can filter for only receiving from motor and not from master.
             // setsockopt(socket_descrp_, SOL_CAN_RAW, CAN_RAW_FILTER, &rfilter, sizeof(rfilter));
 
             setsockopt(socket_descrp_, SOL_CAN_RAW, CAN_RAW_LOOPBACK, &loopback, sizeof(loopback));
@@ -28,7 +28,7 @@ namespace CAN_interface
 
             // Send an I/O control call and pass an ifreq structure containing the interface name
             // ioctl() system call manipulates the underlying device parameters of special files. 
-            // SIOCGIFINDEX Retrieve the interface index of the interface into ifr_ifindex insude ifr struct.
+            // SIOCGIFINDEX Retrieve the interface index of the interface into ifr_ifindex inside ifr struct.
             ioctl(socket_descrp_, SIOCGIFINDEX, &ifr);
 
             // with the interface index, now bind the socket to the CAN Interface
@@ -72,9 +72,7 @@ namespace CAN_interface
 
     bool CANInterface::receiveCANFrame(unsigned char* CANMsg)
     {
-        // Need to implement the filterting of the messages from the CAN ID requested.
-        // Currently the CAN ID is not used at all here as it listens to all CAN messages.
-
+        // Listen to all CAN messages. Filter by Motor ID later in the motor driver class.
         struct can_frame frame;
 
         if (read(socket_descrp_, &frame, sizeof(struct can_frame)) < 0)

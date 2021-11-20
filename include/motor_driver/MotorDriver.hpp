@@ -39,8 +39,6 @@ namespace motor_driver
     	std::map<int, motorState> setZeroPosition(std::vector<int> zero_motor_ids);
         std::map<int, motorState> sendRadCommand(std::map<int, motorCommand>);
     	std::map<int, motorState> sendDegreeCommand(std::map<int, motorCommand>);
-    	
-		// Fixed Messages for Enabling, Disabling, and setting Zero Position on the Motor
 
 		unsigned char motorEnableMsg[8];
 
@@ -50,11 +48,10 @@ namespace motor_driver
 
 		// The usleep() is not very accurate on non-realtime systems. So the actual sleep time is 
         // higher than asked for. The Google Docs by Ben Katz shows round trip time to be ~230us.
-        // Looking at the oscilliscope image, the time taken to reply is ~120us after the message
+        // Looking at the oscilloscope image, the time taken to reply is ~120us after the message
         // is sent. Hence here we set it to 100us given that the Ubuntu system always takes longer
         // than what is asked for.
         // Adjust this parameter if running on real-time system.
-		// https://docs.google.com/document/d/1dzNVzblz6mqB3eZVEMyi2MtSngALHdgpTaDJIW_BpS4/edit
 		unsigned int motorReplyWaitTime = 100;
 
     private:
