@@ -38,14 +38,17 @@ namespace motor_driver
 
         if (motor_type_ == MotorType::AK80_6_V1)
         {
+            std::cout << "Using Motor Type AK80-6 V1" << std::endl;
             currentParams = AK80_6_V1_params;
         }
         else if (motor_type_ == MotorType::AK80_6_V2)
         {
+            std::cout << "Using Motor Type AK80-6 V2" << std::endl;
             currentParams = AK80_6_V2_params;
         }
         else if (motor_type_ == MotorType::AK80_9_V2)
         {
+            std::cout << "Using Motor Type AK80-9 V2" << std::endl;
             currentParams = AK80_9_V2_params;
         }
         else 
