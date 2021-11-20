@@ -3,8 +3,8 @@
 namespace motor_driver
 {
 
-    MotorDriver::MotorDriver(const std::vector<int> motor_ids, const char* motor_can_socket) : 
-                            MotorCANInterface_(motor_can_socket), motor_ids_{motor_ids}
+    MotorDriver::MotorDriver(const std::vector<int> motor_ids, const char* motor_can_socket, MotorType motor_type=MotorType::AK80_6_V2) : 
+                            MotorCANInterface_(motor_can_socket), motor_ids_{motor_ids}, motor_type_{motor_type}
     {
 		
 		motorEnableMsg[0] = 0xFF;
@@ -33,6 +33,25 @@ namespace motor_driver
 		motorSetZeroPositionMsg[5] = 0xFF;
 		motorSetZeroPositionMsg[6] = 0xFF;
 		motorSetZeroPositionMsg[7] = 0xFE;
+
+        // Set Motor Parameters According to Motor Type
+
+        if (motor_type_ == MotorType::AK80_6_V1)
+        {
+            currentParams = AK80_6_V1_params;
+        }
+        else if (motor_type_ == MotorType::AK80_6_V2)
+        {
+            currentParams = AK80_6_V2_params;
+        }
+        else if (motor_type_ == MotorType::AK80_9_V2)
+        {
+            currentParams = AK80_9_V2_params;
+        }
+        else 
+        {
+            perror("Specified Motor Type Not Found!!");
+        }
 
         // Initialize all Motors to not enabled.
         for (int idIdx = 0; idIdx < motor_ids_.size(); idIdx++)
@@ -169,17 +188,17 @@ namespace motor_driver
             cmdMotorID = commandIter.first;
             cmdToSend = commandIter.second;
             // Apply Saturation based on the limits
-            cmdToSend.p_des = fminf(fmaxf(P_MIN, cmdToSend.p_des), P_MAX);
-            cmdToSend.v_des = fminf(fmaxf(V_MIN, cmdToSend.v_des), V_MAX);
-            cmdToSend.kp = fminf(fmaxf(KP_MIN, cmdToSend.kp), KP_MAX);
-            cmdToSend.kd = fminf(fmaxf(KD_MIN, cmdToSend.kd), KD_MAX);
-            cmdToSend.tau_ff = fminf(fmaxf(I_MIN, cmdToSend.tau_ff), I_MAX);
+            cmdToSend.p_des = fminf(fmaxf(currentParams.P_MIN, cmdToSend.p_des), currentParams.P_MAX);
+            cmdToSend.v_des = fminf(fmaxf(currentParams.V_MIN, cmdToSend.v_des), currentParams.V_MAX);
+            cmdToSend.kp = fminf(fmaxf(currentParams.KP_MIN, cmdToSend.kp), currentParams.KP_MAX);
+            cmdToSend.kd = fminf(fmaxf(currentParams.KD_MIN, cmdToSend.kd), currentParams.KD_MAX);
+            cmdToSend.tau_ff = fminf(fmaxf(currentParams.T_MIN, cmdToSend.tau_ff), currentParams.T_MAX);
             // convert floats to unsigned ints
-            int p_int = float_to_uint(cmdToSend.p_des, P_MIN, P_MAX, 16);            
-            int v_int = float_to_uint(cmdToSend.v_des, V_MIN, V_MAX, 12);
-            int kp_int = float_to_uint(cmdToSend.kp, KP_MIN, KP_MAX, 12);
-            int kd_int = float_to_uint(cmdToSend.kd, KD_MIN, KD_MAX, 12);
-            int t_int = float_to_uint(cmdToSend.tau_ff, I_MIN, I_MAX, 12);
+            int p_int = float_to_uint(cmdToSend.p_des, currentParams.P_MIN, currentParams.P_MAX, 16);            
+            int v_int = float_to_uint(cmdToSend.v_des, currentParams.V_MIN, currentParams.V_MAX, 12);
+            int kp_int = float_to_uint(cmdToSend.kp, currentParams.KP_MIN, currentParams.KP_MAX, 12);
+            int kd_int = float_to_uint(cmdToSend.kd, currentParams.KD_MIN, currentParams.KD_MAX, 12);
+            int t_int = float_to_uint(cmdToSend.tau_ff, currentParams.T_MIN, currentParams.T_MAX, 12);
 
             // pack ints into the can message
             unsigned char CANMsg_ [8];
@@ -235,6 +254,15 @@ namespace motor_driver
         return motor_state_map;
     }
 
+    motorParams MotorDriver::getMotorParams()
+    {
+        return currentParams;
+    }
+
+    void MotorDriver::setMotorParams(motorParams newParams)
+    {   
+        currentParams = newParams;
+    }
 
     motorState MotorDriver::decodeCANFrame(unsigned char* CANReplyMsg_)
     {
@@ -245,9 +273,9 @@ namespace motor_driver
         int v_int = (CANReplyMsg_[3]<<4)|(CANReplyMsg_[4]>>4);
         int i_int = ((CANReplyMsg_[4]&0xF)<<8)|CANReplyMsg_[5];
         // convert unsigned ints to floats
-        float p = uint_to_float(p_int, P_MIN, P_MAX, 16);
-        float v = uint_to_float(v_int, V_MIN, V_MAX, 12);
-        float i = uint_to_float(i_int, -I_MAX, I_MAX, 12);
+        float p = uint_to_float(p_int, currentParams.P_MIN, currentParams.P_MAX, 16);
+        float v = uint_to_float(v_int, currentParams.V_MIN, currentParams.V_MAX, 12);
+        float i = uint_to_float(i_int, -currentParams.T_MAX, currentParams.T_MAX, 12);
 
         state.motor_id = id;
         state.position = p;

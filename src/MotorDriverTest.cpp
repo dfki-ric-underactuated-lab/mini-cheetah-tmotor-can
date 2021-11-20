@@ -25,19 +25,19 @@ uint64_t get_time_in_microseconds()
 int main(int argc, char **argv)
 {
     vector<int> motor_ids = {0x01};
-	motor_driver::MotorDriver motor_controller(motor_ids, "can0");
+	motor_driver::MotorDriver motor_controller(motor_ids, "can0", motor_driver::MotorType::AK80_6_V2);
 	
-	// cout<<"Enabling Motor..."<<endl;
-	// motor_driver::motorState start_state = motor_controller.enableMotor();
-	// cout<<"Position: "<<start_state.position<<" Velocity: "<<start_state.velocity<<" Torque: "<<start_state.torque<<endl;
+	cout<<"Enabling Motor..."<<endl;
+	auto start_state = motor_controller.enableMotor(motor_ids);
+	cout<<"Position: "<<start_state[motor_ids[0]].position<<" Velocity: "<<start_state[motor_ids[0]].velocity<<" Torque: "<<start_state[motor_ids[0]].torque<<endl;
 	
- //    cout<<"Setting Zero Position..."<<endl;
- //    motor_driver::motorState stateZero = motor_controller.setZeroPosition();
- //    cout<<"Position: "<<stateZero.position<<" Velocity: "<<stateZero.velocity<<" Torque: "<<stateZero.torque<<endl; 
+    cout<<"Setting Zero Position..."<<endl;
+    auto stateZero = motor_controller.setZeroPosition(motor_ids);
+    cout<<"Position: "<<stateZero[motor_ids[0]].position<<" Velocity: "<<stateZero[motor_ids[0]].velocity<<" Torque: "<<stateZero[motor_ids[0]].torque<<endl; 
 	
-	// cout<<"Disabling Motor..."<<endl;	
-	// motor_driver::motorState end_state = motor_controller.disableMotor();
-	// cout<<"Position: "<<end_state.position<<" Velocity: "<<end_state.velocity<<" Torque: "<<end_state.torque<<endl;
+	cout<<"Disabling Motor..."<<endl;	
+	auto end_state = motor_controller.disableMotor(motor_ids);
+	cout<<"Position: "<<end_state[motor_ids[0]].position<<" Velocity: "<<end_state[motor_ids[0]].velocity<<" Torque: "<<end_state[motor_ids[0]].torque<<endl;
 	
     return 0;
 }
