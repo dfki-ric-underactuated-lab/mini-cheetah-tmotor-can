@@ -41,7 +41,7 @@ namespace motor_driver
         int AXIS_DIRECTION;
     };
 
-    enum class MotorType {AK80_6_V1, AK80_6_V2, AK80_9_V2};
+    enum MotorType {AK80_6_V1, AK80_6_V2, AK80_9_V2};
 
 
     class MotorDriver{
