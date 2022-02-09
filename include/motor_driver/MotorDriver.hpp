@@ -7,7 +7,7 @@
 #include <math.h>
 #include <vector>
 #include <map>
-// #include "Parameters.hpp"
+
 #include "CANInterface.hpp"
 
 namespace motor_driver
@@ -41,7 +41,11 @@ namespace motor_driver
         int AXIS_DIRECTION;
     };
 
-    enum MotorType {AK80_6_V1, AK80_6_V2, AK80_9_V2};
+    enum MotorType {AK80_6_V1,
+                    AK80_6_V1p1,
+                    AK80_6_V2,
+                    AK80_9_V1p1,
+                    AK80_9_V2};
 
 
     class MotorDriver{
@@ -84,7 +88,7 @@ namespace motor_driver
         unsigned char CANReplyMsg_ [8];
         CAN_interface::CANInterface MotorCANInterface_;
         motorState decodeCANFrame(unsigned char* CANReplyMsg_);
-        unsigned char* encodeCANFrame(motorState state);
+        bool encodeCANFrame(motorCommand cmdToSend, unsigned char* CANMsg_);
         // Taken from Ben Katz mbed repo https://os.mbed.com/users/benkatz/code/MotorModuleExample/
         int float_to_uint(float x, float x_min, float x_max, int bits);
         float uint_to_float(int x_int, float x_min, float x_max, int bits);
@@ -98,6 +102,21 @@ namespace motor_driver
             45.0,         // V_MAX
             -18.0,        // T_MIN
             18.0,         // T_MAX
+            0.0,          // KP_MIN
+            500.0,        // KP_MAX
+            0,            // KD_MIN
+            5,            // KD_MAX
+            -1            // AXIS_DIRECTION
+        };
+
+        // Working Parameters for AK80-6 V1.1 Firmware
+        motorParams AK80_6_V1p1_params = {
+            -12.5,        // P_MIN
+            12.5,         // P_MAX
+            -22.5,        // V_MIN
+            22.5,         // V_MAX
+            -12.0,        // T_MIN
+            12.0,         // T_MAX
             0.0,          // KP_MIN
             500.0,        // KP_MAX
             0,            // KD_MIN
@@ -120,6 +139,21 @@ namespace motor_driver
             1             // AXIS_DIRECTION
         };
 
+        // Working parameters for AK80-9 V1.1 firmware
+        motorParams AK80_9_V1p1_params = {
+            -12.5,        // P_MIN
+            12.5,         // P_MAX
+            -22.5,       // V_MIN
+            22.5,        // V_MAX
+            -18.0,        // T_MIN
+            18.0,         // T_MAX
+            0.0,          // KP_MIN
+            500.0,        // KP_MAX
+            0,            // KD_MIN
+            5,            // KD_MAX
+            1             // AXIS_DIRECTION
+        };
+        
         // Working parameters for AK80-9 V2.0 firmware
         motorParams AK80_9_V2_params = {
             -12.5,        // P_MIN

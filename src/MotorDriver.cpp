@@ -3,7 +3,7 @@
 namespace motor_driver
 {
 
-    MotorDriver::MotorDriver(const std::vector<int> motor_ids, const char* motor_can_socket, MotorType motor_type=MotorType::AK80_6_V2) : 
+    MotorDriver::MotorDriver(const std::vector<int> motor_ids, const char* motor_can_socket, MotorType motor_type=MotorType::AK80_6_V1p1) : 
                             MotorCANInterface_(motor_can_socket), motor_ids_{motor_ids}, motor_type_{motor_type}
     {
 		
@@ -41,10 +41,20 @@ namespace motor_driver
             std::cout << "Using Motor Type AK80-6 V1" << std::endl;
             currentParams = AK80_6_V1_params;
         }
+        else if (motor_type_ == MotorType::AK80_6_V1p1)
+        {
+            std::cout << "Using Motor Type AK80-6 V1.1" << std::endl;
+            currentParams = AK80_6_V1p1_params;
+        }
         else if (motor_type_ == MotorType::AK80_6_V2)
         {
             std::cout << "Using Motor Type AK80-6 V2" << std::endl;
             currentParams = AK80_6_V2_params;
+        }
+        else if (motor_type_ == MotorType::AK80_9_V1p1)
+        {
+            std::cout << "Using Motor Type AK80-9 V1.1" << std::endl;
+            currentParams = AK80_9_V1p1_params;
         }
         else if (motor_type_ == MotorType::AK80_9_V2)
         {
@@ -190,29 +200,8 @@ namespace motor_driver
         {
             cmdMotorID = commandIter.first;
             cmdToSend = commandIter.second;
-            // Apply Saturation based on the limits
-            cmdToSend.p_des = fminf(fmaxf(currentParams.P_MIN, cmdToSend.p_des), currentParams.P_MAX);
-            cmdToSend.v_des = fminf(fmaxf(currentParams.V_MIN, cmdToSend.v_des), currentParams.V_MAX);
-            cmdToSend.kp = fminf(fmaxf(currentParams.KP_MIN, cmdToSend.kp), currentParams.KP_MAX);
-            cmdToSend.kd = fminf(fmaxf(currentParams.KD_MIN, cmdToSend.kd), currentParams.KD_MAX);
-            cmdToSend.tau_ff = fminf(fmaxf(currentParams.T_MIN, cmdToSend.tau_ff), currentParams.T_MAX);
-            // convert floats to unsigned ints
-            int p_int = float_to_uint(cmdToSend.p_des, currentParams.P_MIN, currentParams.P_MAX, 16);            
-            int v_int = float_to_uint(cmdToSend.v_des, currentParams.V_MIN, currentParams.V_MAX, 12);
-            int kp_int = float_to_uint(cmdToSend.kp, currentParams.KP_MIN, currentParams.KP_MAX, 12);
-            int kd_int = float_to_uint(cmdToSend.kd, currentParams.KD_MIN, currentParams.KD_MAX, 12);
-            int t_int = float_to_uint(cmdToSend.tau_ff, currentParams.T_MIN, currentParams.T_MAX, 12);
-
-            // pack ints into the can message
-            unsigned char CANMsg_ [8];
-            CANMsg_[0] = p_int>>8;                                       
-            CANMsg_[1] = p_int&0xFF;
-            CANMsg_[2] = v_int>>4;
-            CANMsg_[3] = ((v_int&0xF)<<4)|(kp_int>>8);
-            CANMsg_[4] = kp_int&0xFF;
-            CANMsg_[5] = kd_int>>4;
-            CANMsg_[6] = ((kd_int&0xF)<<4)|(t_int>>8);
-            CANMsg_[7] = t_int&0xff;
+            unsigned char CANMsg_[8];
+            bool return_val = encodeCANFrame(cmdToSend, CANMsg_);
 
             if (isMotorEnabled[cmdMotorID])
             {
@@ -221,7 +210,7 @@ namespace motor_driver
                 if (MotorCANInterface_.receiveCANFrame(CANReplyMsg_))
                 {
                     state = decodeCANFrame(CANReplyMsg_);
-                    motor_state_map[cmdMotorID] = state;   
+                    motor_state_map[cmdMotorID] = state;
                 }
                 else
                 {
@@ -281,11 +270,42 @@ namespace motor_driver
         float i = uint_to_float(i_int, -currentParams.T_MAX, currentParams.T_MAX, 12);
 
         state.motor_id = id;
-        state.position = p;
-        state.velocity = v;
-        state.torque = i;
+        state.position = p * currentParams.AXIS_DIRECTION;;
+        state.velocity = v * currentParams.AXIS_DIRECTION;;
+        state.torque = i * currentParams.AXIS_DIRECTION;;
 
         return state;
+    }
+
+    bool MotorDriver::encodeCANFrame(motorCommand cmdToSend, unsigned char* CANMsg_)
+    {
+        cmdToSend.p_des = cmdToSend.p_des * currentParams.AXIS_DIRECTION;
+        cmdToSend.v_des = cmdToSend.v_des * currentParams.AXIS_DIRECTION;
+        cmdToSend.tau_ff = cmdToSend.tau_ff * currentParams.AXIS_DIRECTION;
+        // Apply Saturation based on the limits      
+        cmdToSend.p_des = fminf(fmaxf(currentParams.P_MIN, cmdToSend.p_des), currentParams.P_MAX);
+        cmdToSend.v_des = fminf(fmaxf(currentParams.V_MIN, cmdToSend.v_des), currentParams.V_MAX);
+        cmdToSend.kp = fminf(fmaxf(currentParams.KP_MIN, cmdToSend.kp), currentParams.KP_MAX);
+        cmdToSend.kd = fminf(fmaxf(currentParams.KD_MIN, cmdToSend.kd), currentParams.KD_MAX);
+        cmdToSend.tau_ff = fminf(fmaxf(currentParams.T_MIN, cmdToSend.tau_ff), currentParams.T_MAX);
+        // convert floats to unsigned ints
+        int p_int = float_to_uint(cmdToSend.p_des, currentParams.P_MIN, currentParams.P_MAX, 16);            
+        int v_int = float_to_uint(cmdToSend.v_des, currentParams.V_MIN, currentParams.V_MAX, 12);
+        int kp_int = float_to_uint(cmdToSend.kp, currentParams.KP_MIN, currentParams.KP_MAX, 12);
+        int kd_int = float_to_uint(cmdToSend.kd, currentParams.KD_MIN, currentParams.KD_MAX, 12);
+        int t_int = float_to_uint(cmdToSend.tau_ff, currentParams.T_MIN, currentParams.T_MAX, 12);
+
+        // pack ints into the can message
+        CANMsg_[0] = p_int>>8;                                       
+        CANMsg_[1] = p_int&0xFF;
+        CANMsg_[2] = v_int>>4;
+        CANMsg_[3] = ((v_int&0xF)<<4)|(kp_int>>8);
+        CANMsg_[4] = kp_int&0xFF;
+        CANMsg_[5] = kd_int>>4;
+        CANMsg_[6] = ((kd_int&0xF)<<4)|(t_int>>8);
+        CANMsg_[7] = t_int&0xff;
+
+        return true;
     }
 
 
