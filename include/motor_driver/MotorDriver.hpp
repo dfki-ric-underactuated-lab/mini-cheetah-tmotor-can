@@ -85,7 +85,9 @@ namespace motor_driver
         double pi = 3.14159265359;
         std::map<int, bool> isMotorEnabled;
         const std::vector<int> motor_ids_;
+        // Pre-allocate memory for CAN messages which are overwritten by functions.
         unsigned char CANReplyMsg_ [8];
+        unsigned char CANMsg_[8];
         CAN_interface::CANInterface MotorCANInterface_;
         motorState decodeCANFrame(unsigned char* CANReplyMsg_);
         bool encodeCANFrame(motorCommand cmdToSend, unsigned char* CANMsg_);

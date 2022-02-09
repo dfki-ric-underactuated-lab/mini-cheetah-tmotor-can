@@ -200,7 +200,6 @@ namespace motor_driver
         {
             cmdMotorID = commandIter.first;
             cmdToSend = commandIter.second;
-            unsigned char CANMsg_[8];
             bool return_val = encodeCANFrame(cmdToSend, CANMsg_);
 
             if (isMotorEnabled[cmdMotorID])
