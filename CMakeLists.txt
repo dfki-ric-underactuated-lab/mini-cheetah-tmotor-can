@@ -11,6 +11,8 @@ endif(WIN32)
 
 set (CMAKE_CXX_STANDARD 11)
 
+include(GNUInstallDirs)
+
 set(SOURCE_DIR ${PROJECT_SOURCE_DIR}/src)
 set(INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include/motor_driver)
 set(lib_INCLUDE_DIR ${INCLUDE_DIR} CACHE INTERNAL "")
@@ -55,21 +57,28 @@ target_link_libraries(MotorDriverTest ${PROJECT_NAME}-static ${CMAKE_THREAD_LIBS
 # add_executable(MotorTrajTest ${SOURCE_DIR}/MotorDriverTrajTest.cpp)
 # target_link_libraries(MotorTrajTest ${PROJECT_NAME}-static ${CMAKE_THREAD_LIBS_INIT})
 
+# Add PUBLIC_HEADERS so that other applications on the computer can use this library.
+set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "include/motor_driver/MotorDriver.hpp;include/motor_driver/CANInterface.hpp")
+
 INSTALL(TARGETS ${PROJECT_NAME}
         RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME} 
+        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} 
         ARCHIVE DESTINATION lib
        )
 
-INSTALL(FILES ${LIBRARY_HEADER}
-        DESTINATION include/motor_driver
-        )
+# INSTALL(FILES ${LIBRARY_HEADER}
+#         DESTINATION include/motor_driver
+#         )
 
-set(PKGCONFIG_REQUIRES_PRIVATE "")
-set(PKGCONFIG_EXTRA_LINK_FLAGS "")
-set(PKGCONFIG_LINK_FLAGS_PRIVATE "")
+# INSTALL(TARGETS )
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}.pc.in
-    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pc @ONLY)
+# set(PKGCONFIG_REQUIRES_PRIVATE "")
+# set(PKGCONFIG_EXTRA_LINK_FLAGS "")
+# set(PKGCONFIG_LINK_FLAGS_PRIVATE "")
 
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pc DESTINATION lib/pkgconfig)
+# configure_file(${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}.pc.in
+#     ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pc @ONLY)
+
+# install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pc DESTINATION lib/pkgconfig)
