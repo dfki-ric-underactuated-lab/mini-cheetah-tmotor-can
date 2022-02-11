@@ -6,34 +6,6 @@ namespace motor_driver
     MotorDriver::MotorDriver(const std::vector<int> motor_ids, const char* motor_can_socket, MotorType motor_type=MotorType::AK80_6_V1p1) : 
                             MotorCANInterface_(motor_can_socket), motor_ids_{motor_ids}, motor_type_{motor_type}
     {
-		
-		motorEnableMsg[0] = 0xFF;
-		motorEnableMsg[1] = 0xFF;
-		motorEnableMsg[2] = 0xFF;
-		motorEnableMsg[3] = 0xFF;
-		motorEnableMsg[4] = 0xFF;
-		motorEnableMsg[5] = 0xFF;
-		motorEnableMsg[6] = 0xFF;
-		motorEnableMsg[7] = 0xFC;
-
-		motorDisableMsg[0] = 0xFF;
-		motorDisableMsg[1] = 0xFF;
-		motorDisableMsg[2] = 0xFF;
-		motorDisableMsg[3] = 0xFF;
-		motorDisableMsg[4] = 0xFF;
-		motorDisableMsg[5] = 0xFF;
-		motorDisableMsg[6] = 0xFF;
-		motorDisableMsg[7] = 0xFD;
-
-		motorSetZeroPositionMsg[0] = 0xFF;
-		motorSetZeroPositionMsg[1] = 0xFF;
-		motorSetZeroPositionMsg[2] = 0xFF;
-		motorSetZeroPositionMsg[3] = 0xFF;
-		motorSetZeroPositionMsg[4] = 0xFF;
-		motorSetZeroPositionMsg[5] = 0xFF;
-		motorSetZeroPositionMsg[6] = 0xFF;
-		motorSetZeroPositionMsg[7] = 0xFE;
-
         // Set Motor Parameters According to Motor Type
 
         if (motor_type_ == MotorType::AK80_6_V1)

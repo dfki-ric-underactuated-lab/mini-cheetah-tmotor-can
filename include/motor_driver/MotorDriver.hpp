@@ -61,12 +61,6 @@ namespace motor_driver
         std::map<int, motorState> sendRadCommand(std::map<int, motorCommand>);
     	std::map<int, motorState> sendDegreeCommand(std::map<int, motorCommand>);
 
-		unsigned char motorEnableMsg[8];
-
-		unsigned char motorDisableMsg[8];
-
-		unsigned char motorSetZeroPositionMsg[8];
-
         motorParams getMotorParams();
 
         void setMotorParams(motorParams newParams);
@@ -80,6 +74,9 @@ namespace motor_driver
 		unsigned int motorReplyWaitTime = 10;
 
     private:
+        // unsigned char motorEnableMsg[8];
+		// unsigned char motorDisableMsg[8];
+		// unsigned char motorSetZeroPositionMsg[8];
         motorParams currentParams;
         MotorType motor_type_;
         double pi = 3.14159265359;
@@ -170,6 +167,34 @@ namespace motor_driver
             5,            // KD_MAX
             1             // AXIS_DIRECTION
         };
+
+        // Default Motor Messages
+        unsigned char motorEnableMsg[8] = {0xFF,
+                                           0xFF,
+                                           0xFF,
+                                           0xFF,
+                                           0xFF,
+                                           0xFF,
+                                           0xFF,
+                                           0xFC};
+
+        unsigned char motorDisableMsg[8] = {0xFF,
+                                            0xFF,
+                                            0xFF,
+                                            0xFF,
+                                            0xFF,
+                                            0xFF,
+                                            0xFF,
+                                            0xFD};
+        
+        unsigned char motorSetZeroPositionMsg[8] = {0xFF,
+                                                    0xFF,
+                                                    0xFF,
+                                                    0xFF,
+                                                    0xFF,
+                                                    0xFF,
+                                                    0xFF,
+                                                    0xFE};
     };
 
 }
