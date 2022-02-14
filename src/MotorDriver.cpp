@@ -39,6 +39,7 @@ namespace motor_driver
         }
 
         // Initialize all Motors to not enabled.
+        // TODO: Enable enabled check better across multiple objects of this class.
         for (int idIdx = 0; idIdx < motor_ids_.size(); idIdx++)
         {
             isMotorEnabled[motor_ids_[idIdx]] = false;
@@ -87,30 +88,29 @@ namespace motor_driver
         for (int iterId = 0; iterId < disable_motor_ids.size(); iterId++)
         {
             // TODO: Add check that enable motor id is in initialized motor_ids_ vector
-            // using std::find
-            if (isMotorEnabled[disable_motor_ids[iterId]])
+            // using std::find.
+            // TODO: Enable enabled check better across multiple objects of this class.
+            // if (isMotorEnabled[disable_motor_ids[iterId]])
+            // {
+            //     std::cout << "MotorDriver::disableMotor() Motor seems to already be in disabled state. \
+            //                   Did you want to really do this?" << std::endl;
+            // }
+            MotorCANInterface_.sendCANFrame(disable_motor_ids[iterId], motorDisableMsg);
+            usleep(motorReplyWaitTime);
+            if (MotorCANInterface_.receiveCANFrame(CANReplyMsg_))
             {
-                MotorCANInterface_.sendCANFrame(disable_motor_ids[iterId], motorDisableMsg);
-                usleep(motorReplyWaitTime);
-                if (MotorCANInterface_.receiveCANFrame(CANReplyMsg_))
-                {
-                    state = decodeCANFrame(CANReplyMsg_);
-                    isMotorEnabled[disable_motor_ids[iterId]] = false;
-                }
-                else
-                {
-                    perror("MotorDriver::disableMotor() Unable to Receive CAN Reply.");
-                }
-                if (disable_motor_ids[iterId] != state.motor_id)
-                {
-                    perror("MotorDriver::disableMotor() Received message does not have the same motor id!!");
-                }
-                motor_state_map[disable_motor_ids[iterId]] = state;
+                state = decodeCANFrame(CANReplyMsg_);
+                isMotorEnabled[disable_motor_ids[iterId]] = false;
             }
             else
             {
-                perror("MotorDriver::disableMotor() Motor was already in disabled state.");
+                perror("MotorDriver::disableMotor() Unable to Receive CAN Reply.");
             }
+            if (disable_motor_ids[iterId] != state.motor_id)
+            {
+                perror("MotorDriver::disableMotor() Received message does not have the same motor id!!");
+            }
+            motor_state_map[disable_motor_ids[iterId]] = state;
         }
         return motor_state_map;
     }
@@ -124,7 +124,25 @@ namespace motor_driver
         {
             // TODO: Add check that enable motor id is in initialized motor_ids_ vector
             // using std::find
-            if (isMotorEnabled[zero_motor_ids[iterId]])
+            // TODO: Enable enabled check better across multiple objects of this class.
+            // if (isMotorEnabled[zero_motor_ids[iterId]])
+            // {
+            //     std::cout << "MotorDriver::setZeroPosition() Motor in disabled state.\
+            //                   Did you want to really do this?" << std::endl;
+            // }
+            MotorCANInterface_.sendCANFrame(zero_motor_ids[iterId], motorSetZeroPositionMsg);
+            usleep(motorReplyWaitTime);
+            if (MotorCANInterface_.receiveCANFrame(CANReplyMsg_))
+            {
+                state = decodeCANFrame(CANReplyMsg_);
+                motor_state_map[zero_motor_ids[iterId]] = state;
+            }
+            else
+            {
+                perror("MotorDriver::setZeroPosition() Unable to Receive CAN Reply.");
+            }
+
+            while (state.position > (5 * (pi / 180)))
             {
                 MotorCANInterface_.sendCANFrame(zero_motor_ids[iterId], motorSetZeroPositionMsg);
                 usleep(motorReplyWaitTime);
@@ -137,25 +155,6 @@ namespace motor_driver
                 {
                     perror("MotorDriver::setZeroPosition() Unable to Receive CAN Reply.");
                 }
-
-                while (state.position > (5 * (pi / 180)))
-                {
-                    MotorCANInterface_.sendCANFrame(zero_motor_ids[iterId], motorSetZeroPositionMsg);
-                    usleep(motorReplyWaitTime);
-                    if (MotorCANInterface_.receiveCANFrame(CANReplyMsg_))
-                    {
-                        state = decodeCANFrame(CANReplyMsg_);
-                        motor_state_map[zero_motor_ids[iterId]] = state;
-                    }
-                    else
-                    {
-                        perror("MotorDriver::setZeroPosition() Unable to Receive CAN Reply.");
-                    }
-                }
-            }
-            else
-            {
-                perror("MotorDriver::setZeroPosition() Motor in disabled state.");
             }
         }
        return motor_state_map;
@@ -173,24 +172,22 @@ namespace motor_driver
             cmdMotorID = commandIter.first;
             cmdToSend = commandIter.second;
             bool return_val = encodeCANFrame(cmdToSend, CANMsg_);
-
-            if (isMotorEnabled[cmdMotorID])
+            // TODO: Enable enabled check better across multiple objects of this class.
+            // if (isMotorEnabled[cmdMotorID])
+            // {
+            //     std::cout << "MotorDriver::sendRadCommand() Motor in disabled state.\
+            //                   Did you want to really do this?" << std::endl;
+            // }
+            MotorCANInterface_.sendCANFrame(cmdMotorID, CANMsg_);
+            usleep(motorReplyWaitTime);
+            if (MotorCANInterface_.receiveCANFrame(CANReplyMsg_))
             {
-                MotorCANInterface_.sendCANFrame(cmdMotorID, CANMsg_);
-                usleep(motorReplyWaitTime);
-                if (MotorCANInterface_.receiveCANFrame(CANReplyMsg_))
-                {
-                    state = decodeCANFrame(CANReplyMsg_);
-                    motor_state_map[cmdMotorID] = state;
-                }
-                else
-                {
-                    perror("MotorDriver::sendRadCommand() Unable to Receive CAN Reply.");
-                }
+                state = decodeCANFrame(CANReplyMsg_);
+                motor_state_map[cmdMotorID] = state;
             }
             else
             {
-                perror("MotorDriver::sendRadCommand() Motor in disabled state.");
+                perror("MotorDriver::sendRadCommand() Unable to Receive CAN Reply.");
             }
         }
 
