@@ -36,6 +36,9 @@ int main(int argc, char **argv)
     cout<<"1. Zero Position: "<<stateZero[motor_ids[0]].position<<" Velocity: "<<stateZero[motor_ids[0]].velocity<<" Torque: "<<stateZero[motor_ids[0]].torque<<endl; 
 	cout<<"2. Zero Position: "<<stateZero[motor_ids[1]].position<<" Velocity: "<<stateZero[motor_ids[1]].velocity<<" Torque: "<<stateZero[motor_ids[1]].torque<<endl; 
 
+	int i;
+	cout << "Waiting for user input... Enter any number to continue..." << endl;
+	cin >> i;
 
 	motor_driver::motorCommand commandStruct1 = {1.57, 0, 50, 2, 0}; 
 	motor_driver::motorCommand commandStruct2 = {-1.57, 0, 50, 2, 0}; 

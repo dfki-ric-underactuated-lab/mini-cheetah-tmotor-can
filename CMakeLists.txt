@@ -30,16 +30,10 @@ set(LIBRARY_NAME ${PROJECT_NAME} CACHE INTERNAL "")
 set(LIBRARY_SOURCE ${SOURCE_DIR}/MotorDriver.cpp
 	           ${SOURCE_DIR}/CANInterface.cpp)
 
-#set(LIBRARY_HEADER ${INCLUDE_DIR}/MotorDriver.hpp
-#	           ${INCLUDE_DIR}/CANInterface.hpp
-#		   ${INCLUDE_DIR}/CANCommand.hpp
-#	           ${INCLUDE_DIR}/Parameters.hpp)
-
 # find threads - needed for header only csv parser used in this project
 find_package (Threads)
 
 # Create an Object to Make both Static and Shared Libraries in the same CMakeLists File.
-#add_library(${PROJECT_NAME}-object OBJECT ${LIBRARY_SOURCE} ${LIBRARY_HEADER})
 add_library(${PROJECT_NAME}-object OBJECT ${LIBRARY_SOURCE})
 
 # this is only needed for older compilers but doesn't hurt either to have it
@@ -67,18 +61,3 @@ INSTALL(TARGETS ${PROJECT_NAME}
         INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} 
         ARCHIVE DESTINATION lib
        )
-
-# INSTALL(FILES ${LIBRARY_HEADER}
-#         DESTINATION include/motor_driver
-#         )
-
-# INSTALL(TARGETS )
-
-# set(PKGCONFIG_REQUIRES_PRIVATE "")
-# set(PKGCONFIG_EXTRA_LINK_FLAGS "")
-# set(PKGCONFIG_LINK_FLAGS_PRIVATE "")
-
-# configure_file(${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}.pc.in
-#     ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pc @ONLY)
-
-# install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pc DESTINATION lib/pkgconfig)
