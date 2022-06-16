@@ -100,6 +100,25 @@ namespace motor_driver
             //     std::cout << "MotorDriver::disableMotor() Motor seems to already be in disabled state. \
             //                   Did you want to really do this?" << std::endl;
             // }
+
+            // Bugfix: To remove the initial kick at motor start.
+            // The current working theory is that the motor "remembers" the last command. And this
+            // causes an initial kick as the motor controller starts. The fix is then to set the 
+            // last command to zero so that this does not happen. For the user, the behaviour does
+            // not change as zero command + disable is same as disable.
+            bool return_val = encodeCANFrame(zeroCmdStruct, CANMsg_);
+            MotorCANInterface_.sendCANFrame(disable_motor_ids[iterId], CANMsg_);
+            usleep(motorReplyWaitTime);
+            if (MotorCANInterface_.receiveCANFrame(CANReplyMsg_))
+            {
+                state = decodeCANFrame(CANReplyMsg_);
+            }
+            else
+            {
+                perror("MotorDriver::disableMotor() Unable to Receive CAN Reply.");
+            }
+
+            // Do the actual disabling after zero command.
             MotorCANInterface_.sendCANFrame(disable_motor_ids[iterId], motorDisableMsg);
             usleep(motorReplyWaitTime);
             if (MotorCANInterface_.receiveCANFrame(CANReplyMsg_))
@@ -147,7 +166,7 @@ namespace motor_driver
                 perror("MotorDriver::setZeroPosition() Unable to Receive CAN Reply.");
             }
 
-            while (state.position > (5 * (pi / 180)))
+            while (state.position > (1 * (pi / 180)))
             {
                 MotorCANInterface_.sendCANFrame(zero_motor_ids[iterId], motorSetZeroPositionMsg);
                 usleep(motorReplyWaitTime);

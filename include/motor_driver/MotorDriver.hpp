@@ -185,6 +185,9 @@ namespace motor_driver
         };
 
         // Default Motor Messages
+
+        motorCommand zeroCmdStruct = {0, 0, 0, 0, 0};
+
         unsigned char motorEnableMsg[8] = {0xFF,
                                            0xFF,
                                            0xFF,

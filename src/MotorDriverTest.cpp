@@ -22,19 +22,20 @@ uint64_t get_time_in_microseconds()
 
 int main(int argc, char **argv)
 {
-    // vector<int> motor_ids = {0x06, 0x07};
-	vector<int> motor_ids = {0x02, 0x03};
+	vector<int> motor_ids = {0x08, 0x09};
 	motor_driver::MotorDriver motor_controller(motor_ids, "can0", motor_driver::MotorType::AK80_6_V1p1);
 	
+	cout<<"Setting Zero Position..."<<endl;
+    auto stateZero = motor_controller.setZeroPosition(motor_ids);
+    cout<<"1. Zero Position: "<<stateZero[motor_ids[0]].position<<" Velocity: "<<stateZero[motor_ids[0]].velocity<<" Torque: "<<stateZero[motor_ids[0]].torque<<endl; 
+	cout<<"2. Zero Position: "<<stateZero[motor_ids[1]].position<<" Velocity: "<<stateZero[motor_ids[1]].velocity<<" Torque: "<<stateZero[motor_ids[1]].torque<<endl; 
+
+	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
 	cout<<"Enabling Motor..."<<endl;
 	auto start_state = motor_controller.enableMotor(motor_ids);
 	cout<<"1. Enable Position: "<<start_state[motor_ids[0]].position<<" Velocity: "<<start_state[motor_ids[0]].velocity<<" Torque: "<<start_state[motor_ids[0]].torque<<endl;
 	cout<<"2. Enable Position: "<<start_state[motor_ids[1]].position<<" Velocity: "<<start_state[motor_ids[1]].velocity<<" Torque: "<<start_state[motor_ids[1]].torque<<endl;
-	
-    cout<<"Setting Zero Position..."<<endl;
-    auto stateZero = motor_controller.setZeroPosition(motor_ids);
-    cout<<"1. Zero Position: "<<stateZero[motor_ids[0]].position<<" Velocity: "<<stateZero[motor_ids[0]].velocity<<" Torque: "<<stateZero[motor_ids[0]].torque<<endl; 
-	cout<<"2. Zero Position: "<<stateZero[motor_ids[1]].position<<" Velocity: "<<stateZero[motor_ids[1]].velocity<<" Torque: "<<stateZero[motor_ids[1]].torque<<endl; 
 
 	int i;
 	cout << "Waiting for user input... Enter any number to continue..." << endl;
@@ -42,7 +43,6 @@ int main(int argc, char **argv)
 
 	motor_driver::motorCommand commandStruct1 = {1.57, 0, 50, 2, 0}; 
 	motor_driver::motorCommand commandStruct2 = {-1.57, 0, 50, 2, 0}; 
-	// std::map<int, motor_driver::motorCommand> commandMap = {{6, commandStruct}, {7, commandStruct}};
 	std::map<int, motor_driver::motorCommand> commandMap = {{motor_ids[0], commandStruct1}, {motor_ids[1], commandStruct2}};
 	auto startT = get_time_in_microseconds();
 	auto commandState = motor_controller.sendRadCommand(commandMap);
