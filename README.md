@@ -152,6 +152,21 @@ AK80_9_V2_PARAMS = {
                     "AXIS_DIRECTION" : 1
                     }
 
+// Working parameters for AK70-10 V1.1 firmware
+AK70_10_V1p1_params = {
+                      "P_MIN" :  -12.5,
+                      "P_MAX" :  12.5,
+                      "V_MIN" :  -50,
+                      "V_MAX" :  50,
+                      "KP_MIN" :  -24.0,
+                      "KP_MAX" :  24.0,
+                      "KD_MIN" :  0.0,
+                      "KD_MAX" :  500.0,
+                      "T_MIN" :  0,
+                      "T_MAX" :  5,
+                      "AXIS_DIRECTION" :  1
+                    };
+
 # Working parameters for AK10-9 V1.1 firmware
 AK10_9_V1p1_PARAMS = {
                 "P_MIN" : -12.5,
