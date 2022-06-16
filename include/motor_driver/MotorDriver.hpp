@@ -46,6 +46,7 @@ namespace motor_driver
                     AK80_6_V2,
                     AK80_9_V1p1,
                     AK80_9_V2,
+                    AK70_10V1p1,
                     AK10_9_V1p1};
 
 
@@ -169,6 +170,20 @@ namespace motor_driver
             1             // AXIS_DIRECTION
         };
 
+        // Working parameters for AK10-10 V1.1 firmware
+        motorParams AK70_10_V1p1_params = {
+            -12.5,        // P_MIN
+            12.5,         // P_MAX
+            -50,       // V_MIN
+            50,        // V_MAX
+            -24.0,        // T_MIN
+            24.0,         // T_MAX
+            0.0,          // KP_MIN
+            500.0,        // KP_MAX
+            0,            // KD_MIN
+            5,            // KD_MAX
+            1             // AXIS_DIRECTION
+        };
         // Working parameters for AK10-9 V1.1 firmware
         motorParams AK10_9_V1p1_params = {
             -12.5,        // P_MIN
