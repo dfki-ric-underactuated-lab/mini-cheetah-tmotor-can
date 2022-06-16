@@ -72,9 +72,10 @@ And add the following header to your project code:
 
 # Supported Motor Configurations:
 
-- AK80-6 (From Cubemars, Firmware versions V1, V1.1, and V2): `motor_type='AK80_6_V1'`, `motor_type='AK80_6_V1p1'` and `motor_type='AK80_6_V2'`
-- AK80-9 (From Cubemars, Firmware version V1.1 and V2): `motor_type='AK80_9_V1p1'` and `motor_type='AK80_9_V2'`
-- AK10-9 (From Cubemars, Firmware version V1.1): `motor_type='AK10_9_V1p1'`. **TODO:** The temperature and error codes are received but not yet decoded for the new firmware for this motor.
+- AK80-6 (From Cubemars, Firmware versions V1, V1.1, and V2): `motor_driver::MotorType::AK80_6_V1`, `motor_driver::MotorType::AK80_6_V1p1` and `motor_driver::MotorType::AK80_6_V2`
+- AK80-9 (From Cubemars, Firmware version V1.1 and V2): `motor_driver::MotorType::AK80_9_V1p1` and `motor_driver::MotorType::AK80_9_V2`
+- AK70-10 (From Cubemars, Firmware version V1.1): `motor_driver::MotorType::AK70_10_V1p1`
+- AK10-9 (From Cubemars, Firmware version V1.1): `motor_driver::MotorType::AK10_9_V1p1`. (**TODO:** The temperature and error codes are received but not yet decoded for the new firmware for this motor.)
 
 ```
 # Working parameters for AK80-6 V1.0 firmware
@@ -158,14 +159,14 @@ AK70_10_V1p1_params = {
                       "P_MAX" :  12.5,
                       "V_MIN" :  -50,
                       "V_MAX" :  50,
-                      "KP_MIN" :  -24.0,
-                      "KP_MAX" :  24.0,
-                      "KD_MIN" :  0.0,
-                      "KD_MAX" :  500.0,
-                      "T_MIN" :  0,
-                      "T_MAX" :  5,
+                      "KP_MIN" :  0,
+                      "KP_MAX" :  500,
+                      "KD_MIN" :  0,
+                      "KD_MAX" :  5,
+                      "T_MIN" :  -24.0,
+                      "T_MAX" :  24.0,
                       "AXIS_DIRECTION" :  1
-                    };
+                    }
 
 # Working parameters for AK10-9 V1.1 firmware
 AK10_9_V1p1_PARAMS = {
