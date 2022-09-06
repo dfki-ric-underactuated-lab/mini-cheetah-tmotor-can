@@ -53,19 +53,18 @@ namespace motor_driver
     class MotorDriver{
 
     public:
-        MotorDriver(std::vector<int> motor_ids, const char* motor_can_socket, MotorType motor_type);
+        MotorDriver(const std::vector<int>& motor_ids, const char* motor_can_socket, MotorType motor_type);
 
-    	~MotorDriver();
+    	~MotorDriver() = default;
 
-    	std::map<int, motorState> disableMotor(std::vector<int> disable_motor_ids);
-    	std::map<int, motorState> enableMotor(std::vector<int> enable_motor_ids);
-    	std::map<int, motorState> setZeroPosition(std::vector<int> zero_motor_ids);
-        std::map<int, motorState> sendRadCommand(std::map<int, motorCommand>);
-    	std::map<int, motorState> sendDegreeCommand(std::map<int, motorCommand>);
+    	std::map<int, motorState> disableMotor(const std::vector<int>& disable_motor_ids);
+    	std::map<int, motorState> enableMotor(const std::vector<int>& enable_motor_ids);
+    	std::map<int, motorState> setZeroPosition(const std::vector<int>& zero_motor_ids);
+        std::map<int, motorState> sendRadCommand(const std::map<int, motorCommand>& );
+    	std::map<int, motorState> sendDegreeCommand(const std::map<int, motorCommand>& );
 
-        motorParams getMotorParams();
-
-        void setMotorParams(motorParams newParams);
+        const motorParams& getMotorParams() const;
+        void setMotorParams(const motorParams& newParams);
 
 		// The usleep() is not very accurate on non-realtime systems. So the actual sleep time is 
         // higher than asked for. The Google Docs by Ben Katz shows round trip time to be ~230us.

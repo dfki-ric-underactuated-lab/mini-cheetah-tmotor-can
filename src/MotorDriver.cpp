@@ -3,99 +3,88 @@
 namespace motor_driver
 {
 
-    MotorDriver::MotorDriver(const std::vector<int> motor_ids, const char* motor_can_socket, MotorType motor_type=MotorType::AK80_6_V1p1) : 
-                            MotorCANInterface_(motor_can_socket), motor_ids_{motor_ids}, motor_type_{motor_type}
+    MotorDriver::MotorDriver(const std::vector<int>& motor_ids, const char* motor_can_socket, MotorType motor_type=MotorType::AK80_6_V1p1) 
+        : MotorCANInterface_(motor_can_socket), motor_ids_{motor_ids}, motor_type_{motor_type}
     {
         // Set Motor Parameters According to Motor Type
 
-        if (motor_type_ == MotorType::AK80_6_V1)
+        switch (motor_type_)
         {
-            std::cout << "Using Motor Type AK80-6 V1" << std::endl;
-            currentParams = AK80_6_V1_params;
-        }
-        else if (motor_type_ == MotorType::AK80_6_V1p1)
-        {
-            std::cout << "Using Motor Type AK80-6 V1.1" << std::endl;
-            currentParams = AK80_6_V1p1_params;
-        }
-        else if (motor_type_ == MotorType::AK80_6_V2)
-        {
-            std::cout << "Using Motor Type AK80-6 V2" << std::endl;
-            currentParams = AK80_6_V2_params;
-        }
-        else if (motor_type_ == MotorType::AK80_9_V1p1)
-        {
-            std::cout << "Using Motor Type AK80-9 V1.1" << std::endl;
-            currentParams = AK80_9_V1p1_params;
-        }
-        else if (motor_type_ == MotorType::AK80_9_V2)
-        {
-            std::cout << "Using Motor Type AK80-9 V2" << std::endl;
-            currentParams = AK80_9_V2_params;
-        }
-        else if (motor_type_ == MotorType::AK70_10V1p1)
-        {
-            std::cout << "Using Motor Type AK70-10 V1.1" << std::endl;
-            currentParams = AK70_10_V1p1_params;
-        }
-        else if (motor_type_ == MotorType::AK10_9_V1p1)
-        {
-            std::cout << "Using Motor Type AK10-9 V1.1" << std::endl;
-            currentParams = AK10_9_V1p1_params;
-        }
-        else 
-        {
-            perror("Specified Motor Type Not Found!!");
+            case MotorType::AK80_6_V1:
+                std::cout << "Using Motor Type AK80-6 V1" << std::endl;
+                currentParams = AK80_6_V1_params;
+                break;
+            case MotorType::AK80_6_V1p1:
+                std::cout << "Using Motor Type AK80-6 V1.1" << std::endl;
+                currentParams = AK80_6_V1p1_params;
+                break;
+            case MotorType::AK80_6_V2:
+                std::cout << "Using Motor Type AK80-6 V2" << std::endl;
+                currentParams = AK80_6_V2_params;
+                break;
+            case MotorType::AK80_9_V1p1:
+                std::cout << "Using Motor Type AK80-9 V1.1" << std::endl;
+                currentParams = AK80_9_V1p1_params;
+                break;
+            case MotorType::AK80_9_V2:
+                std::cout << "Using Motor Type AK80-9 V2" << std::endl;
+                currentParams = AK80_9_V2_params;
+                break;
+            case MotorType::AK70_10V1p1:
+                std::cout << "Using Motor Type AK70-10 V1.1" << std::endl;
+                currentParams = AK70_10_V1p1_params;
+                break;
+            case MotorType::AK10_9_V1p1:
+                std::cout << "Using Motor Type AK10-9 V1.1" << std::endl;
+                currentParams = AK10_9_V1p1_params;
+                break;
+            default:
+                perror("Specified Motor Type Not Found!!");
         }
 
         // Initialize all Motors to not enabled.
         // TODO: Enable enabled check better across multiple objects of this class.
-        for (int idIdx = 0; idIdx < motor_ids_.size(); idIdx++)
-        {
-            isMotorEnabled[motor_ids_[idIdx]] = false;
-        }
+        for (int motor_id : motor_ids_)
+            isMotorEnabled[motor_id] = false;
     }
 
 
-    MotorDriver::~MotorDriver()
-    {
-    }
-
-
-    std::map<int, motorState> MotorDriver::enableMotor(std::vector<int> enable_motor_ids)
+    std::map<int, motorState> MotorDriver::enableMotor(const std::vector<int>& enable_motor_ids)
     {
         std::map<int, motorState> motor_state_map;
+        
         motorState state;
-        for (int iterId = 0; iterId < enable_motor_ids.size(); iterId++)
+        for (int motor_id : enable_motor_ids)
         {
             // TODO: Add check that enable motor id is in initialized motor_ids_ vector
             // using std::find
-            MotorCANInterface_.sendCANFrame(enable_motor_ids[iterId], motorEnableMsg);
+            MotorCANInterface_.sendCANFrame(motor_id, motorEnableMsg);
             usleep(motorReplyWaitTime);
             if (MotorCANInterface_.receiveCANFrame(CANReplyMsg_))
             {
                 state = decodeCANFrame(CANReplyMsg_);
-                isMotorEnabled[enable_motor_ids[iterId]] = true;
+                isMotorEnabled[motor_id] = true;
             }
             else
             {
                 perror("MotorDriver::enableMotor() Unable to Receive CAN Reply.");
             }
-            if (enable_motor_ids[iterId] != state.motor_id)
-            {
+
+            if (motor_id != state.motor_id)
                 perror("MotorDriver::enableMotor() Received message does not have the same motor id!!");
-            }
-            motor_state_map[enable_motor_ids[iterId]] = state;
+
+            motor_state_map[motor_id] = state;
         }
         return motor_state_map;
     }
 
 
-    std::map<int, motorState> MotorDriver::disableMotor(std::vector<int> disable_motor_ids)
+    std::map<int, motorState> MotorDriver::disableMotor(const std::vector<int>& disable_motor_ids)
     {
         std::map<int, motorState> motor_state_map;
+        
         motorState state;
-        for (int iterId = 0; iterId < disable_motor_ids.size(); iterId++)
+        for (int motor_id : disable_motor_ids)
         {
             // TODO: Add check that enable motor id is in initialized motor_ids_ vector
             // using std::find.
@@ -112,8 +101,9 @@ namespace motor_driver
             // last command to zero so that this does not happen. For the user, the behaviour does
             // not change as zero command + disable is same as disable.
             bool return_val = encodeCANFrame(zeroCmdStruct, CANMsg_);
-            MotorCANInterface_.sendCANFrame(disable_motor_ids[iterId], CANMsg_);
+            MotorCANInterface_.sendCANFrame(motor_id, CANMsg_);
             usleep(motorReplyWaitTime);
+            
             if (MotorCANInterface_.receiveCANFrame(CANReplyMsg_))
             {
                 state = decodeCANFrame(CANReplyMsg_);
@@ -124,47 +114,48 @@ namespace motor_driver
             }
 
             // Do the actual disabling after zero command.
-            MotorCANInterface_.sendCANFrame(disable_motor_ids[iterId], motorDisableMsg);
+            MotorCANInterface_.sendCANFrame(motor_id, motorDisableMsg);
             usleep(motorReplyWaitTime);
             if (MotorCANInterface_.receiveCANFrame(CANReplyMsg_))
             {
                 state = decodeCANFrame(CANReplyMsg_);
-                isMotorEnabled[disable_motor_ids[iterId]] = false;
+                isMotorEnabled[motor_id] = false;
             }
             else
             {
                 perror("MotorDriver::disableMotor() Unable to Receive CAN Reply.");
             }
-            if (disable_motor_ids[iterId] != state.motor_id)
-            {
+
+            if (motor_id != state.motor_id)
                 perror("MotorDriver::disableMotor() Received message does not have the same motor id!!");
-            }
-            motor_state_map[disable_motor_ids[iterId]] = state;
+                
+            motor_state_map[motor_id] = state;
         }
         return motor_state_map;
     }
 
 
-    std::map<int, motorState> MotorDriver::setZeroPosition(std::vector<int> zero_motor_ids)
+    std::map<int, motorState> MotorDriver::setZeroPosition(const std::vector<int>& zero_motor_ids)
     {
         std::map<int, motorState> motor_state_map;
+
         motorState state;
-        for (int iterId = 0; iterId < zero_motor_ids.size(); iterId++)
+        for (int motor_id : zero_motor_ids)
         {
             // TODO: Add check that enable motor id is in initialized motor_ids_ vector
             // using std::find
             // TODO: Enable enabled check better across multiple objects of this class.
-            // if (isMotorEnabled[zero_motor_ids[iterId]])
+            // if (isMotorEnabled[motor_id])
             // {
             //     std::cout << "MotorDriver::setZeroPosition() Motor in disabled state.\
             //                   Did you want to really do this?" << std::endl;
             // }
-            MotorCANInterface_.sendCANFrame(zero_motor_ids[iterId], motorSetZeroPositionMsg);
+            MotorCANInterface_.sendCANFrame(motor_id, motorSetZeroPositionMsg);
             usleep(motorReplyWaitTime);
             if (MotorCANInterface_.receiveCANFrame(CANReplyMsg_))
             {
                 state = decodeCANFrame(CANReplyMsg_);
-                motor_state_map[zero_motor_ids[iterId]] = state;
+                motor_state_map[motor_id] = state;
             }
             else
             {
@@ -173,12 +164,12 @@ namespace motor_driver
 
             while (state.position > (1 * (pi / 180)))
             {
-                MotorCANInterface_.sendCANFrame(zero_motor_ids[iterId], motorSetZeroPositionMsg);
+                MotorCANInterface_.sendCANFrame(motor_id, motorSetZeroPositionMsg);
                 usleep(motorReplyWaitTime);
                 if (MotorCANInterface_.receiveCANFrame(CANReplyMsg_))
                 {
                     state = decodeCANFrame(CANReplyMsg_);
-                    motor_state_map[zero_motor_ids[iterId]] = state;
+                    motor_state_map[motor_id] = state;
                 }
                 else
                 {
@@ -190,16 +181,16 @@ namespace motor_driver
     }
 
 
-    std::map<int, motorState> MotorDriver::sendRadCommand(std::map<int, motorCommand> motorRadCommands)
+    std::map<int, motorState> MotorDriver::sendRadCommand(const std::map<int, motorCommand>& motorRadCommands)
     {
-        std::map<int, motorState> motor_state_map;
         motorState state;
-        int cmdMotorID;
-        motorCommand cmdToSend;
-        for (std::pair<int, motorCommand> commandIter : motorRadCommands)
+        std::map<int, motorState> motor_state_map;
+
+        for (const std::pair<int, motorCommand>& commandIter : motorRadCommands)
         {
-            cmdMotorID = commandIter.first;
-            cmdToSend = commandIter.second;
+            int cmdMotorID = commandIter.first;
+            const motorCommand& cmdToSend = commandIter.second;
+
             bool return_val = encodeCANFrame(cmdToSend, CANMsg_);
             // TODO: Enable enabled check better across multiple objects of this class.
             // if (isMotorEnabled[cmdMotorID])
@@ -223,32 +214,25 @@ namespace motor_driver
         return motor_state_map;
     }
 
-    std::map<int, motorState> MotorDriver::sendDegreeCommand(std::map<int, motorCommand> motorDegCommands)
+    std::map<int, motorState> MotorDriver::sendDegreeCommand(const std::map<int, motorCommand>& motorDegCommands)
     {
-        std::map<int, motorState> motor_state_map;
-        std::map<int, motorCommand> motorRadCommands;
-        int cmdMotorID;
-        motorCommand cmdToSend;
-        for (std::pair<int, motorCommand> commandIter : motorDegCommands)
+        std::map<int, motorCommand> motorRadCommands = motorDegCommands;
+
+        for (auto& command_pair : motorRadCommands)
         {
-            cmdMotorID = commandIter.first;
-            cmdToSend = commandIter.second;
-            cmdToSend.p_des = cmdToSend.p_des * (pi / 180);
-            cmdToSend.v_des = cmdToSend.v_des * (pi / 180);
-            motorRadCommands[cmdMotorID] = cmdToSend;
+            command_pair.second.p_des *= (pi / 180);
+            command_pair.second.v_des *= (pi / 180);
         }
 
-        motor_state_map = sendRadCommand(motorRadCommands);
-
-        return motor_state_map;
+        return sendRadCommand(motorRadCommands);
     }
 
-    motorParams MotorDriver::getMotorParams()
+    const motorParams& MotorDriver::getMotorParams() const
     {
         return currentParams;
     }
 
-    void MotorDriver::setMotorParams(motorParams newParams)
+    void MotorDriver::setMotorParams(const motorParams& newParams)
     {   
         currentParams = newParams;
     }
@@ -293,14 +277,14 @@ namespace motor_driver
         int t_int = float_to_uint(cmdToSend.tau_ff, currentParams.T_MIN, currentParams.T_MAX, 12);
 
         // pack ints into the can message
-        CANMsg_[0] = p_int>>8;                                       
-        CANMsg_[1] = p_int&0xFF;
-        CANMsg_[2] = v_int>>4;
-        CANMsg_[3] = ((v_int&0xF)<<4)|(kp_int>>8);
-        CANMsg_[4] = kp_int&0xFF;
-        CANMsg_[5] = kd_int>>4;
-        CANMsg_[6] = ((kd_int&0xF)<<4)|(t_int>>8);
-        CANMsg_[7] = t_int&0xff;
+        CANMsg_[0] = p_int >> 8;                                       
+        CANMsg_[1] = p_int & 0xFF;
+        CANMsg_[2] = v_int >> 4;
+        CANMsg_[3] = ((v_int & 0xF) << 4) | (kp_int >> 8);
+        CANMsg_[4] = kp_int & 0xFF;
+        CANMsg_[5] = kd_int >> 4;
+        CANMsg_[6] = ((kd_int & 0xF) << 4) | (t_int >> 8);
+        CANMsg_[7] = t_int & 0xff;
 
         return true;
     }
