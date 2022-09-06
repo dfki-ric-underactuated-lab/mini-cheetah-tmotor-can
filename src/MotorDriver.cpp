@@ -239,42 +239,45 @@ namespace motor_driver
 
     motorState MotorDriver::decodeCANFrame(unsigned char* CANReplyMsg_)
     {
-        motorState state;
         // unpack ints from can buffer
         int id = CANReplyMsg_[0];
-        int p_int = (CANReplyMsg_[1]<<8)|CANReplyMsg_[2];
-        int v_int = (CANReplyMsg_[3]<<4)|(CANReplyMsg_[4]>>4);
-        int i_int = ((CANReplyMsg_[4]&0xF)<<8)|CANReplyMsg_[5];
+        int p_int = (CANReplyMsg_[1] << 8) | CANReplyMsg_[2];
+        int v_int = (CANReplyMsg_[3] << 4) | (CANReplyMsg_[4] >> 4);
+        int i_int = ((CANReplyMsg_[4] & 0xF) << 8) | CANReplyMsg_[5];
         // convert unsigned ints to floats
         float p = uint_to_float(p_int, currentParams.P_MIN, currentParams.P_MAX, 16);
         float v = uint_to_float(v_int, currentParams.V_MIN, currentParams.V_MAX, 12);
-        float i = uint_to_float(i_int, -currentParams.T_MAX, currentParams.T_MAX, 12);
+        float i = uint_to_float(i_int, -currentParams.T_MAX, currentParams.T_MAX, 12); // here -T_MAX, in encode T_MIN
 
-        state.motor_id = id;
-        state.position = p * currentParams.AXIS_DIRECTION;;
-        state.velocity = v * currentParams.AXIS_DIRECTION;;
-        state.torque = i * currentParams.AXIS_DIRECTION;;
+        motorState state {
+            .motor_id = id,
+            .position = p * currentParams.AXIS_DIRECTION,
+            .velocity = v * currentParams.AXIS_DIRECTION,
+            .torque = i * currentParams.AXIS_DIRECTION
+        };
 
         return state;
     }
 
-    bool MotorDriver::encodeCANFrame(motorCommand cmdToSend, unsigned char* CANMsg_)
+    bool MotorDriver::encodeCANFrame(const motorCommand& cmdToSend, unsigned char* CANMsg_)
     {
-        cmdToSend.p_des = cmdToSend.p_des * currentParams.AXIS_DIRECTION;
-        cmdToSend.v_des = cmdToSend.v_des * currentParams.AXIS_DIRECTION;
-        cmdToSend.tau_ff = cmdToSend.tau_ff * currentParams.AXIS_DIRECTION;
+        float p_des = cmdToSend.p_des * currentParams.AXIS_DIRECTION;
+        float v_des = cmdToSend.v_des * currentParams.AXIS_DIRECTION;
+        float tau_ff = cmdToSend.tau_ff * currentParams.AXIS_DIRECTION;
+
         // Apply Saturation based on the limits      
-        cmdToSend.p_des = fminf(fmaxf(currentParams.P_MIN, cmdToSend.p_des), currentParams.P_MAX);
-        cmdToSend.v_des = fminf(fmaxf(currentParams.V_MIN, cmdToSend.v_des), currentParams.V_MAX);
-        cmdToSend.kp = fminf(fmaxf(currentParams.KP_MIN, cmdToSend.kp), currentParams.KP_MAX);
-        cmdToSend.kd = fminf(fmaxf(currentParams.KD_MIN, cmdToSend.kd), currentParams.KD_MAX);
-        cmdToSend.tau_ff = fminf(fmaxf(currentParams.T_MIN, cmdToSend.tau_ff), currentParams.T_MAX);
+        p_des = fminf(fmaxf(currentParams.P_MIN, p_des), currentParams.P_MAX);
+        v_des = fminf(fmaxf(currentParams.V_MIN, v_des), currentParams.V_MAX);
+        tau_ff = fminf(fmaxf(currentParams.T_MIN, tau_ff), currentParams.T_MAX);
+        float kp = fminf(fmaxf(currentParams.KP_MIN, cmdToSend.kp), currentParams.KP_MAX);
+        float kd = fminf(fmaxf(currentParams.KD_MIN, cmdToSend.kd), currentParams.KD_MAX);
+
         // convert floats to unsigned ints
-        int p_int = float_to_uint(cmdToSend.p_des, currentParams.P_MIN, currentParams.P_MAX, 16);            
-        int v_int = float_to_uint(cmdToSend.v_des, currentParams.V_MIN, currentParams.V_MAX, 12);
-        int kp_int = float_to_uint(cmdToSend.kp, currentParams.KP_MIN, currentParams.KP_MAX, 12);
-        int kd_int = float_to_uint(cmdToSend.kd, currentParams.KD_MIN, currentParams.KD_MAX, 12);
-        int t_int = float_to_uint(cmdToSend.tau_ff, currentParams.T_MIN, currentParams.T_MAX, 12);
+        int p_int = float_to_uint(p_des, currentParams.P_MIN, currentParams.P_MAX, 16);            
+        int v_int = float_to_uint(v_des, currentParams.V_MIN, currentParams.V_MAX, 12);
+        int kp_int = float_to_uint(kp, currentParams.KP_MIN, currentParams.KP_MAX, 12);
+        int kd_int = float_to_uint(kd, currentParams.KD_MIN, currentParams.KD_MAX, 12);
+        int t_int = float_to_uint(tau_ff, currentParams.T_MIN, currentParams.T_MAX, 12);
 
         // pack ints into the can message
         CANMsg_[0] = p_int >> 8;                                       
@@ -295,7 +298,7 @@ namespace motor_driver
         /// Converts a float to an unsigned int, given range and number of bits ///
         float span = x_max - x_min;
         float offset = x_min;
-        return (int) ((x-offset)*((float)((1<<bits)-1))/span);
+        return (int) ((x-offset) * ((float)((1 << bits)-1)) / span);
     }
 
 
@@ -304,7 +307,7 @@ namespace motor_driver
         /// converts unsigned int to float, given range and number of bits ///
         float span = x_max - x_min;
         float offset = x_min;
-        return ((float)x_int)*span/((float)((1<<bits)-1)) + offset;
+        return ((float)x_int) * span / ((float)((1 << bits)-1)) + offset;
     }
 
 } // motor driver namespace

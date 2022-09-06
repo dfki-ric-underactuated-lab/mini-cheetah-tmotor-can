@@ -88,7 +88,7 @@ namespace motor_driver
         unsigned char CANMsg_[8];
         CAN_interface::CANInterface MotorCANInterface_;
         motorState decodeCANFrame(unsigned char* CANReplyMsg_);
-        bool encodeCANFrame(motorCommand cmdToSend, unsigned char* CANMsg_);
+        bool encodeCANFrame(const motorCommand& cmdToSend, unsigned char* CANMsg_);
         // Taken from Ben Katz mbed repo https://os.mbed.com/users/benkatz/code/MotorModuleExample/
         int float_to_uint(float x, float x_min, float x_max, int bits);
         float uint_to_float(int x_int, float x_min, float x_max, int bits);
