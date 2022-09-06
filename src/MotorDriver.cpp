@@ -12,31 +12,31 @@ namespace motor_driver
         {
             case MotorType::AK80_6_V1:
                 std::cout << "Using Motor Type AK80-6 V1" << std::endl;
-                current_params_ = AK80_6_V1_params;
+                current_params_ = default_params::AK80_6_V1_params;
                 break;
             case MotorType::AK80_6_V1p1:
                 std::cout << "Using Motor Type AK80-6 V1.1" << std::endl;
-                current_params_ = AK80_6_V1p1_params;
+                current_params_ = default_params::AK80_6_V1p1_params;
                 break;
             case MotorType::AK80_6_V2:
                 std::cout << "Using Motor Type AK80-6 V2" << std::endl;
-                current_params_ = AK80_6_V2_params;
+                current_params_ = default_params::AK80_6_V2_params;
                 break;
             case MotorType::AK80_9_V1p1:
                 std::cout << "Using Motor Type AK80-9 V1.1" << std::endl;
-                current_params_ = AK80_9_V1p1_params;
+                current_params_ = default_params::AK80_9_V1p1_params;
                 break;
             case MotorType::AK80_9_V2:
                 std::cout << "Using Motor Type AK80-9 V2" << std::endl;
-                current_params_ = AK80_9_V2_params;
+                current_params_ = default_params::AK80_9_V2_params;
                 break;
             case MotorType::AK70_10V1p1:
                 std::cout << "Using Motor Type AK70-10 V1.1" << std::endl;
-                current_params_ = AK70_10_V1p1_params;
+                current_params_ = default_params::AK70_10_V1p1_params;
                 break;
             case MotorType::AK10_9_V1p1:
                 std::cout << "Using Motor Type AK10-9 V1.1" << std::endl;
-                current_params_ = AK10_9_V1p1_params;
+                current_params_ = default_params::AK10_9_V1p1_params;
                 break;
             default:
                 perror("Specified Motor Type Not Found!!");
@@ -58,7 +58,7 @@ namespace motor_driver
         {
             // TODO: Add check that enable motor id is in initialized motor_ids_ vector
             // using std::find
-            motor_CAN_interface_.sendCANFrame(motor_id, motorEnableMsg);
+            motor_CAN_interface_.sendCANFrame(motor_id, default_msgs::motorEnableMsg);
             usleep(motorReplyWaitTime);
             if (motor_CAN_interface_.receiveCANFrame(CAN_reply_msg_))
             {
@@ -100,7 +100,7 @@ namespace motor_driver
             // causes an initial kick as the motor controller starts. The fix is then to set the 
             // last command to zero so that this does not happen. For the user, the behaviour does
             // not change as zero command + disable is same as disable.
-            bool return_val = encodeCANFrame(zeroCmdStruct, CAN_msg_);
+            bool return_val = encodeCANFrame(default_msgs::zeroCmdStruct, CAN_msg_);
             motor_CAN_interface_.sendCANFrame(motor_id, CAN_msg_);
             usleep(motorReplyWaitTime);
             
@@ -114,7 +114,7 @@ namespace motor_driver
             }
 
             // Do the actual disabling after zero command.
-            motor_CAN_interface_.sendCANFrame(motor_id, motorDisableMsg);
+            motor_CAN_interface_.sendCANFrame(motor_id, default_msgs::motorDisableMsg);
             usleep(motorReplyWaitTime);
             if (motor_CAN_interface_.receiveCANFrame(CAN_reply_msg_))
             {
@@ -150,7 +150,7 @@ namespace motor_driver
             //     std::cout << "MotorDriver::setZeroPosition() Motor in disabled state.\
             //                   Did you want to really do this?" << std::endl;
             // }
-            motor_CAN_interface_.sendCANFrame(motor_id, motorSetZeroPositionMsg);
+            motor_CAN_interface_.sendCANFrame(motor_id, default_msgs::motorSetZeroPositionMsg);
             usleep(motorReplyWaitTime);
             if (motor_CAN_interface_.receiveCANFrame(CAN_reply_msg_))
             {
@@ -164,7 +164,7 @@ namespace motor_driver
 
             while (state.position > (1 * (pi / 180)))
             {
-                motor_CAN_interface_.sendCANFrame(motor_id, motorSetZeroPositionMsg);
+                motor_CAN_interface_.sendCANFrame(motor_id, default_msgs::motorSetZeroPositionMsg);
                 usleep(motorReplyWaitTime);
                 if (motor_CAN_interface_.receiveCANFrame(CAN_reply_msg_))
                 {

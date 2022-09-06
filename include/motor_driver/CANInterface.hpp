@@ -26,7 +26,8 @@ namespace CAN_interface
         CANInterface(const char* socketName);
 
         ~CANInterface();
-        bool sendCANFrame(int can_id, unsigned char* CANMsg);
+        
+        bool sendCANFrame(int can_id, const unsigned char* CANMsg);
         bool receiveCANFrame(unsigned char* CANMsg);
 
     private:

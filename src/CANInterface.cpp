@@ -52,7 +52,7 @@ namespace CAN_interface
         }
     }
 
-    bool CANInterface::sendCANFrame(int can_id, unsigned char* CANMsg)
+    bool CANInterface::sendCANFrame(int can_id, const unsigned char* CANMsg)
     {
         struct can_frame frame;
         frame.can_id = can_id;

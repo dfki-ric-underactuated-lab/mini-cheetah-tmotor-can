@@ -96,10 +96,13 @@ namespace motor_driver
 
         const double pi = 3.14159265359;
 
+    };
 
-        // Constants for conversions.
+
+    namespace default_params {
+    
         // Working Parameters for AK80-6 V1.0 Firmware
-        motorParams AK80_6_V1_params = {
+        const motorParams AK80_6_V1_params = {
             -95.5,        // P_MIN
             95.5,         // P_MAX
             -45.0,        // V_MIN
@@ -114,7 +117,7 @@ namespace motor_driver
         };
 
         // Working Parameters for AK80-6 V1.1 Firmware
-        motorParams AK80_6_V1p1_params = {
+        const motorParams AK80_6_V1p1_params = {
             -12.5,        // P_MIN
             12.5,         // P_MAX
             -22.5,        // V_MIN
@@ -129,7 +132,7 @@ namespace motor_driver
         };
 
         // Working parameters for AK80-6 V2.0 firmware
-        motorParams AK80_6_V2_params = {
+        const motorParams AK80_6_V2_params = {
             -12.5,        // P_MIN
             12.5,         // P_MAX
             -38.2,        // V_MIN
@@ -144,7 +147,7 @@ namespace motor_driver
         };
 
         // Working parameters for AK80-9 V1.1 firmware
-        motorParams AK80_9_V1p1_params = {
+        const motorParams AK80_9_V1p1_params = {
             -12.5,        // P_MIN
             12.5,         // P_MAX
             -22.5,       // V_MIN
@@ -159,7 +162,7 @@ namespace motor_driver
         };
         
         // Working parameters for AK80-9 V2.0 firmware
-        motorParams AK80_9_V2_params = {
+        const motorParams AK80_9_V2_params = {
             -12.5,        // P_MIN
             12.5,         // P_MAX
             -25.64,       // V_MIN
@@ -174,7 +177,7 @@ namespace motor_driver
         };
 
         // Working parameters for AK70-10 V1.1 firmware
-        motorParams AK70_10_V1p1_params = {
+        const motorParams AK70_10_V1p1_params = {
             -12.5,        // P_MIN
             12.5,         // P_MAX
             -50,       // V_MIN
@@ -189,7 +192,7 @@ namespace motor_driver
         };
         
         // Working parameters for AK10-9 V1.1 firmware
-        motorParams AK10_9_V1p1_params = {
+        const motorParams AK10_9_V1p1_params = {
             -12.5,        // P_MIN
             12.5,         // P_MAX
             -50,       // V_MIN
@@ -202,12 +205,14 @@ namespace motor_driver
             5,            // KD_MAX
             1             // AXIS_DIRECTION
         };
+    }
 
+    namespace default_msgs {
         // Default Motor Messages
 
-        motorCommand zeroCmdStruct = {0, 0, 0, 0, 0};
+        const motorCommand zeroCmdStruct = {0, 0, 0, 0, 0};
 
-        unsigned char motorEnableMsg[8] = {0xFF,
+        const unsigned char motorEnableMsg[8] = {0xFF,
                                            0xFF,
                                            0xFF,
                                            0xFF,
@@ -216,7 +221,7 @@ namespace motor_driver
                                            0xFF,
                                            0xFC};
 
-        unsigned char motorDisableMsg[8] = {0xFF,
+        const unsigned char motorDisableMsg[8] = {0xFF,
                                             0xFF,
                                             0xFF,
                                             0xFF,
@@ -225,7 +230,7 @@ namespace motor_driver
                                             0xFF,
                                             0xFD};
         
-        unsigned char motorSetZeroPositionMsg[8] = {0xFF,
+        const unsigned char motorSetZeroPositionMsg[8] = {0xFF,
                                                     0xFF,
                                                     0xFF,
                                                     0xFF,
@@ -233,7 +238,9 @@ namespace motor_driver
                                                     0xFF,
                                                     0xFF,
                                                     0xFE};
-    };
+
+    }
+
 
 }
 #endif // MOTOR_DRIVER_HPP
