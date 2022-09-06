@@ -64,7 +64,7 @@ namespace motor_driver
     	std::map<int, motorState> sendDegreeCommand(const std::map<int, motorCommand>& );
 
         const motorParams& getMotorParams() const;
-        void setMotorParams(const motorParams& newParams);
+        void setMotorParams(const motorParams& new_params);
 
 		// The usleep() is not very accurate on non-realtime systems. So the actual sleep time is 
         // higher than asked for. The Google Docs by Ben Katz shows round trip time to be ~230us.
@@ -75,23 +75,27 @@ namespace motor_driver
 		unsigned int motorReplyWaitTime = 10;
 
     private:
-        // unsigned char motorEnableMsg[8];
-		// unsigned char motorDisableMsg[8];
-		// unsigned char motorSetZeroPositionMsg[8];
-        motorParams currentParams;
-        MotorType motor_type_;
-        double pi = 3.14159265359;
-        std::map<int, bool> isMotorEnabled;
-        const std::vector<int> motor_ids_;
-        // Pre-allocate memory for CAN messages which are overwritten by functions.
-        unsigned char CANReplyMsg_ [8];
-        unsigned char CANMsg_[8];
-        CAN_interface::CANInterface MotorCANInterface_;
-        motorState decodeCANFrame(unsigned char* CANReplyMsg_);
-        bool encodeCANFrame(const motorCommand& cmdToSend, unsigned char* CANMsg_);
+
+        motorState decodeCANFrame(const unsigned char* CAN_reply_msg) const;
+        bool encodeCANFrame(const motorCommand& cmd_to_send, unsigned char* CAN_msg) const;
+
         // Taken from Ben Katz mbed repo https://os.mbed.com/users/benkatz/code/MotorModuleExample/
-        int float_to_uint(float x, float x_min, float x_max, int bits);
-        float uint_to_float(int x_int, float x_min, float x_max, int bits);
+        int float_to_uint(float x, float x_min, float x_max, int bits) const;
+        float uint_to_float(int x_int, float x_min, float x_max, int bits) const;
+        
+        MotorType motor_type_;
+        motorParams current_params_;
+
+        const std::vector<int> motor_ids_;
+        std::map<int, bool> is_motor_enabled_;
+
+        // Pre-allocate memory for CAN messages which are overwritten by functions.
+        unsigned char CAN_msg_[8];
+        unsigned char CAN_reply_msg_ [8];
+        CAN_interface::CANInterface motor_CAN_interface_;
+
+        const double pi = 3.14159265359;
+
 
         // Constants for conversions.
         // Working Parameters for AK80-6 V1.0 Firmware
