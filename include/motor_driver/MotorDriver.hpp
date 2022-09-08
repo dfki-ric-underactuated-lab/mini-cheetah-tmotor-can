@@ -53,19 +53,18 @@ namespace motor_driver
     class MotorDriver{
 
     public:
-        MotorDriver(std::vector<int> motor_ids, const char* motor_can_socket, MotorType motor_type);
+        MotorDriver(const std::vector<int>& motor_ids, const char* motor_can_socket, MotorType motor_type);
 
-    	~MotorDriver();
+    	~MotorDriver() = default;
 
-    	std::map<int, motorState> disableMotor(std::vector<int> disable_motor_ids);
-    	std::map<int, motorState> enableMotor(std::vector<int> enable_motor_ids);
-    	std::map<int, motorState> setZeroPosition(std::vector<int> zero_motor_ids);
-        std::map<int, motorState> sendRadCommand(std::map<int, motorCommand>);
-    	std::map<int, motorState> sendDegreeCommand(std::map<int, motorCommand>);
+    	std::map<int, motorState> disableMotor(const std::vector<int>& disable_motor_ids);
+    	std::map<int, motorState> enableMotor(const std::vector<int>& enable_motor_ids);
+    	std::map<int, motorState> setZeroPosition(const std::vector<int>& zero_motor_ids);
+        std::map<int, motorState> sendRadCommand(const std::map<int, motorCommand>& );
+    	std::map<int, motorState> sendDegreeCommand(const std::map<int, motorCommand>& );
 
-        motorParams getMotorParams();
-
-        void setMotorParams(motorParams newParams);
+        const motorParams& getMotorParams() const;
+        void setMotorParams(const motorParams& new_params);
 
 		// The usleep() is not very accurate on non-realtime systems. So the actual sleep time is 
         // higher than asked for. The Google Docs by Ben Katz shows round trip time to be ~230us.
@@ -76,27 +75,34 @@ namespace motor_driver
 		unsigned int motorReplyWaitTime = 10;
 
     private:
-        // unsigned char motorEnableMsg[8];
-		// unsigned char motorDisableMsg[8];
-		// unsigned char motorSetZeroPositionMsg[8];
-        motorParams currentParams;
-        MotorType motor_type_;
-        double pi = 3.14159265359;
-        std::map<int, bool> isMotorEnabled;
-        const std::vector<int> motor_ids_;
-        // Pre-allocate memory for CAN messages which are overwritten by functions.
-        unsigned char CANReplyMsg_ [8];
-        unsigned char CANMsg_[8];
-        CAN_interface::CANInterface MotorCANInterface_;
-        motorState decodeCANFrame(unsigned char* CANReplyMsg_);
-        bool encodeCANFrame(motorCommand cmdToSend, unsigned char* CANMsg_);
-        // Taken from Ben Katz mbed repo https://os.mbed.com/users/benkatz/code/MotorModuleExample/
-        int float_to_uint(float x, float x_min, float x_max, int bits);
-        float uint_to_float(int x_int, float x_min, float x_max, int bits);
 
-        // Constants for conversions.
+        motorState decodeCANFrame(const unsigned char* CAN_reply_msg) const;
+        bool encodeCANFrame(const motorCommand& cmd_to_send, unsigned char* CAN_msg) const;
+
+        // Taken from Ben Katz mbed repo https://os.mbed.com/users/benkatz/code/MotorModuleExample/
+        int float_to_uint(float x, float x_min, float x_max, int bits) const;
+        float uint_to_float(int x_int, float x_min, float x_max, int bits) const;
+        
+        MotorType motor_type_;
+        motorParams current_params_;
+
+        const std::vector<int> motor_ids_;
+        std::map<int, bool> is_motor_enabled_;
+
+        // Pre-allocate memory for CAN messages which are overwritten by functions.
+        unsigned char CAN_msg_[8];
+        unsigned char CAN_reply_msg_ [8];
+        CAN_interface::CANInterface motor_CAN_interface_;
+
+        const double pi = 3.14159265359;
+
+    };
+
+
+    namespace default_params {
+    
         // Working Parameters for AK80-6 V1.0 Firmware
-        motorParams AK80_6_V1_params = {
+        const motorParams AK80_6_V1_params = {
             -95.5,        // P_MIN
             95.5,         // P_MAX
             -45.0,        // V_MIN
@@ -111,7 +117,7 @@ namespace motor_driver
         };
 
         // Working Parameters for AK80-6 V1.1 Firmware
-        motorParams AK80_6_V1p1_params = {
+        const motorParams AK80_6_V1p1_params = {
             -12.5,        // P_MIN
             12.5,         // P_MAX
             -22.5,        // V_MIN
@@ -126,7 +132,7 @@ namespace motor_driver
         };
 
         // Working parameters for AK80-6 V2.0 firmware
-        motorParams AK80_6_V2_params = {
+        const motorParams AK80_6_V2_params = {
             -12.5,        // P_MIN
             12.5,         // P_MAX
             -38.2,        // V_MIN
@@ -141,7 +147,7 @@ namespace motor_driver
         };
 
         // Working parameters for AK80-9 V1.1 firmware
-        motorParams AK80_9_V1p1_params = {
+        const motorParams AK80_9_V1p1_params = {
             -12.5,        // P_MIN
             12.5,         // P_MAX
             -22.5,       // V_MIN
@@ -156,7 +162,7 @@ namespace motor_driver
         };
         
         // Working parameters for AK80-9 V2.0 firmware
-        motorParams AK80_9_V2_params = {
+        const motorParams AK80_9_V2_params = {
             -12.5,        // P_MIN
             12.5,         // P_MAX
             -25.64,       // V_MIN
@@ -171,7 +177,7 @@ namespace motor_driver
         };
 
         // Working parameters for AK70-10 V1.1 firmware
-        motorParams AK70_10_V1p1_params = {
+        const motorParams AK70_10_V1p1_params = {
             -12.5,        // P_MIN
             12.5,         // P_MAX
             -50,       // V_MIN
@@ -186,7 +192,7 @@ namespace motor_driver
         };
         
         // Working parameters for AK10-9 V1.1 firmware
-        motorParams AK10_9_V1p1_params = {
+        const motorParams AK10_9_V1p1_params = {
             -12.5,        // P_MIN
             12.5,         // P_MAX
             -50,       // V_MIN
@@ -199,12 +205,14 @@ namespace motor_driver
             5,            // KD_MAX
             1             // AXIS_DIRECTION
         };
+    }
 
+    namespace default_msgs {
         // Default Motor Messages
 
-        motorCommand zeroCmdStruct = {0, 0, 0, 0, 0};
+        const motorCommand zeroCmdStruct = {0, 0, 0, 0, 0};
 
-        unsigned char motorEnableMsg[8] = {0xFF,
+        const unsigned char motorEnableMsg[8] = {0xFF,
                                            0xFF,
                                            0xFF,
                                            0xFF,
@@ -213,7 +221,7 @@ namespace motor_driver
                                            0xFF,
                                            0xFC};
 
-        unsigned char motorDisableMsg[8] = {0xFF,
+        const unsigned char motorDisableMsg[8] = {0xFF,
                                             0xFF,
                                             0xFF,
                                             0xFF,
@@ -222,7 +230,7 @@ namespace motor_driver
                                             0xFF,
                                             0xFD};
         
-        unsigned char motorSetZeroPositionMsg[8] = {0xFF,
+        const unsigned char motorSetZeroPositionMsg[8] = {0xFF,
                                                     0xFF,
                                                     0xFF,
                                                     0xFF,
@@ -230,7 +238,9 @@ namespace motor_driver
                                                     0xFF,
                                                     0xFF,
                                                     0xFE};
-    };
+
+    }
+
 
 }
 #endif // MOTOR_DRIVER_HPP
