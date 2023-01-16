@@ -21,8 +21,8 @@ include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${INCLUDE_DIR})
 
 include_directories(
-	            ${PROJECT_SOURCE_DIR}/include            
-	            ${PROJECT_SOURCE_DIR}/src            
+	            ${PROJECT_SOURCE_DIR}/include
+	            ${PROJECT_SOURCE_DIR}/src
 	            )
 
 set(LIBRARY_NAME ${PROJECT_NAME} CACHE INTERNAL "")
@@ -57,7 +57,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "include/motor_dr
 INSTALL(TARGETS ${PROJECT_NAME}
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME} 
-        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} 
+        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}
+        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
         ARCHIVE DESTINATION lib
        )
